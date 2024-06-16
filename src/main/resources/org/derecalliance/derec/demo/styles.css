@@ -1,0 +1,74 @@
+.signinscreen {
+    -fx-background-color: #3EB649;
+}
+
+.sharertab-button-bar {
+    -fx-background-color: #1E9629;
+}
+
+.topbar-normal {
+    -fx-background-color: #3EB649;
+}
+
+.topbar-recovery {
+    -fx-background-color: #ff0000;
+}
+
+.topbar-normal Label, .topbar-recovery Label, .topbar-normal Button, .topbar-recovery Button {
+    -fx-text-fill: white; /* Sets the text color to white */
+}
+
+.topbar ComboBox {
+    -fx-background-color: #3EB649; /* Sets the ComboBox background to green */
+    -fx-text-fill: white; /* Sets the ComboBox text color to white */
+    -fx-border-color: white; /* Optional: sets border color to white */
+        -fx-mark-color: white; /* Sets the arrow symbol color to white */
+
+}
+
+.topbar .list-cell {
+    -fx-background-color: white; /* Background of the dropdown items */
+    -fx-text-fill: black; /* Text color of the dropdown items */
+}
+
+.fab {
+/*    -fx-background-color: #3EB649;
+    -fx-text-fill: white;
+    */
+    -fx-font-size: 14px;
+    -fx-background-radius: 30;
+}
+
+.bottombar-normal {
+    -fx-background-color: #3EB649;
+    -fx-min-height: 20px;
+    -fx-pref-height: 20px;
+    -fx-max-height: 20px;
+}
+
+.bottombar-recovery {
+    -fx-background-color: #ff0000;
+    -fx-min-height: 20px;
+    -fx-pref-height: 20px;
+    -fx-max-height: 20px;
+}
+
+.green-header .title {
+    -fx-background-color: #bfd9ba;
+    -fx-border-color: #abb2b9;
+    -fx-border-width: 2;
+}
+
+.red-header .title {
+    -fx-background-color: #f2b2b2;
+    -fx-border-color: #abb2b9;
+    -fx-border-width: 2;
+}
+
+.yellow-header .title {
+    -fx-background-color: #e2d386;
+    -fx-border-color: #abb2b9;
+    -fx-border-width: 2;
+}
+
+

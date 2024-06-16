@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="org.derecalliance.derec.demo.SharerTabController"
+            stylesheets="@styles.css">
+    <!-- Top Content -->
+    <top>
+        <VBox spacing="10" style="-fx-padding: 10px 10px 10px 10px;">
+            <Label text="Secret" style="-fx-font-size: 12px;"/>
+            <HBox spacing="10">
+                <ComboBox fx:id="secretsDropdown"
+                          minWidth="30"
+                          promptText="Please create a secret"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button text="Add Secret" onAction="#handleAddSecret"/>
+            </HBox>
+            <Separator style="-fx-border-width: 1 0 0 0; -fx-border-color: black; "/>
+        </VBox>
+    </top>
+
+
+    <!-- Middle Content -->
+    <center>
+        <VBox fx:id="middleArea" VBox.vgrow="ALWAYS" style="-fx-padding: 0px 10px 0px 10px;">
+            <!-- Dynamic content will be loaded here -->
+        </VBox>
+    </center>
+
+    <!-- Bottom Content -->
+    <bottom>
+        <VBox>
+            <HBox style="-fx-padding: 10px 10px 20px 10px;">
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button fx:id="createANewVersionButton"
+                        text="Create a new version"
+                        visible="false"
+                        styleClass="fab"
+                        onAction="#handleEditSecret"
+                        disable="true"
+                />
+                <Button fx:id="pairWithHelperButton"
+                        text="Pair with a helper" visible="false"
+                        styleClass="fab"
+                        onAction="#showPairWithHelperDialog"
+                        disable="true"
+                />
+            </HBox>
+            <HBox fx:id="bottombox" spacing="10" alignment="CENTER" prefHeight="53.0" style="-fx-background-color:
+                lightgrey;-fx-padding:10px 10px 10px 10px;">
+                <Region HBox.hgrow="ALWAYS"></Region>
+                <Button text="Versions" fx:id="versionsButton"
+                        onAction="#handleVersions" minWidth="150"
+                        HBox.hgrow="ALWAYS"/>
+                <Button text="Helpers" fx:id="helpersButton" onAction="#handleHelpers" minWidth="150"
+                        HBox.hgrow="ALWAYS"/>
+                <Region HBox.hgrow="ALWAYS"></Region>
+                <Button fx:id="notificationsButton" style="-fx-background-radius: 10px;"
+                        onAction="#handleNotificationTab">
+                    <graphic>
+                        <ImageView fitWidth="20" fitHeight="20">
+                            <Image url="@images/bell-icon.jpeg"/>
+                        </ImageView>
+                    </graphic>
+                </Button>
+            </HBox>
+        </VBox>
+    </bottom>
+</BorderPane>

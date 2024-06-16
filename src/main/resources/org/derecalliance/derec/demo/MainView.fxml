@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Line?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.control.ContextMenu?>
+<?import javafx.scene.control.CheckMenuItem?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+            xmlns="http://javafx.com/javafx/21" fx:controller="org.derecalliance.derec.demo.MainController"
+            stylesheets="@styles.css">
+    <top>
+        <VBox fx:id="topbarVbox" styleClass="topbar-normal">
+            <HBox spacing="10.0">
+                <Button fx:id="hamburger" onAction="#onHamburgerClick" text="="/>
+                <Label style="-fx-font-size: 20px; -fx-padding: 10px; -fx-alignment: center;"
+                       text="DeRec Demo Application"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <HBox spacing="3.0" style="-fx-font-size: 12px; -fx-padding: 10px; -fx-alignment: center;">
+                    <Label text="Role"/>
+                    <ComboBox fx:id="roleDropdown">
+                        <HBox.margin>
+                            <Insets/>
+                        </HBox.margin>
+                    </ComboBox>
+                </HBox>
+            </HBox>
+            <Separator style="-fx-border-width: 1 0 0 0; -fx-border-color: black; "/>
+        </VBox>
+    </top>
+
+    <center>
+        <!--        <StackPane fx:id="mainContentArea" style="-fx-padding: 10px;">-->
+        <StackPane fx:id="mainContentArea">
+
+            <!-- This VBox will hold the content based on the selected role -->
+        </StackPane>
+    </center>
+    <bottom>
+        <Region fx:id="bottombarRegion" styleClass="bottombar-normal" />
+    </bottom>
+</BorderPane>
