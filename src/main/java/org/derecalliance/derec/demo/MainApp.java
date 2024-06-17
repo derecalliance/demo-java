@@ -11,10 +11,24 @@ package org.derecalliance.derec.demo;
         import javafx.stage.Stage;
         import org.derecalliance.derec.demo.state.State;
 
+        import java.text.SimpleDateFormat;
+        import java.util.Date;
+
 public class MainApp extends Application {
     public static Scene mainScene;
     public static Stage primaryStage;
 
+    static {
+        // Format the current time as MM-dd-HH-mm-ss
+        SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-HH-mm-ss");
+        String formattedDate = sdf.format(new Date());
+
+        // Set the instanceId property with the formatted date
+        System.setProperty("instanceId", System.getenv("username") + "-" + formattedDate);
+
+        // Debug print to verify
+        System.out.println("Instance ID: " + System.getProperty("instanceId"));
+    }
 
     @Override
     public void start(Stage primaryStage) throws Exception {
