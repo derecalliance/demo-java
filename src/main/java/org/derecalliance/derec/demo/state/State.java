@@ -295,13 +295,14 @@ public class State {
         updateFromLibMethod((List<DeRecHelper.SharerStatus>) helper.getSharers(), sharerStatuses);
         System.out.println("Helper got " + sharerStatuses.size() + " sharer statuses");
         for (DeRecHelper.SharerStatus ss: sharerStatuses) {
-            System.out.println("Sharer status: " + ss);
+            System.out.println("Sharer status: " + ss.getId().getName() + ", PEK: " + ss.getId().getPublicEncryptionKey() + ", Obj: " + ss);
         }
 
         updateFromLibMethod((List<DeRecHelper.Share>) helper.getShares(), stateShares);
         System.out.println("Helper got " + stateShares.size() + " shares");
         for (DeRecHelper.Share ss: stateShares) {
-            System.out.println("Sharer: " + ss.getSharer() + "secret: " +
+            System.out.println("Sharer: " + ss.getSharer().getId().getName() + ", PEK: " + ss.getSharer().getId().getPublicEncryptionKey() + ", Obj: " + ss.getSharer() +
+                    "secret: " +
                     Base64.getEncoder().encodeToString(ss.getSecretId().getBytes()) +
                     " versions: " + ss.getVersions());
         }

@@ -256,9 +256,19 @@ public class HelperTabController {
 //            System.out.println("  Sharer: " + sharerStatus.getId().getName() + " Obj: " + sharerStatus);
 //        }
 
+        System.out.println("In updateSharersInUI, there are " + State.getInstance().stateShares.size() + " shares");
+        for (DeRecHelper.Share ss: State.getInstance().stateShares) {
+            System.out.println("Sharer: " + ss.getSharer() + "secret: " +
+                    Base64.getEncoder().encodeToString(ss.getSecretId().getBytes()) +
+                    " versions: " + ss.getVersions());
+        }
+
+        // Populate sharerSharesMap (SharerStatus -> SecretId -> Shares)
         for (DeRecHelper.Share derecShare : State.getInstance().stateShares) {
             DeRecHelper.Share share = derecShare;
-            System.out.println("IN share: sharer is: " + share.getSharer().getId().getName() + " Obj: " + share.getSharer());
+            System.out.println("IN share: sharer is: " + share.getSharer().getId().getName() + " Sharer-Obj: " + share.getSharer() + "secret: " +
+                    Base64.getEncoder().encodeToString(share.getSecretId().getBytes()) +
+                    " versions: " + share.getVersions());
             if (!sharerSharesMap.containsKey(share.getSharer())) {
                 sharerSharesMap.put(share.getSharer(), new HashMap<>());
             }
@@ -267,14 +277,15 @@ public class HelperTabController {
             }
             sharerSharesMap.get(share.getSharer()).get(share.getSecretId()).add(share);
         }
-            System.out.println("sharerSharesMap");
+        System.out.println("sharerSharesMap");
         for (DeRecHelper.SharerStatus sharerStatus : sharerSharesMap.keySet()) {
-            System.out.println("  Sharer: " + sharerStatus);
+            System.out.println("  Sharer: " + sharerStatus.getId().getName() + ", sharerStatusObj: " + sharerStatus);
             for (DeRecSecret.Id secretId : sharerSharesMap.get(sharerStatus).keySet()) {
                 System.out.println("     SecretId: " + secretId + " count: " + sharerSharesMap.get(sharerStatus).get(secretId).size());
             }
         }
 
+        // Populate secretsPerSharer (Sharer -> count of secrets)
         HashMap<DeRecHelper.SharerStatus, Integer> secretsPerSharer = new HashMap<>();
         for (DeRecHelper.SharerStatus sharerStatus : State.getInstance().sharerStatuses) {
             if (!secretsPerSharer.containsKey(sharerStatus)) {
