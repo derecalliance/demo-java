@@ -165,7 +165,7 @@ public class SharerTabController {
                 if (State.getInstance().getUserSelections().getSecret().getSecretId().equals(derecNotification.getSecret().getSecretId())) {
                     System.out.println("Recovery complete: setting secret.isRecovering to false");
                     State.getInstance().getUserSelections().setRecovering(false);
-                    State.getInstance().getUserSelections().getSecret().setRecovering(false);
+//                    State.getInstance().getUserSelections().getSecret().setRecovering(false);
                 }
             }
             State.getInstance().sharerNotifications.add(notification);

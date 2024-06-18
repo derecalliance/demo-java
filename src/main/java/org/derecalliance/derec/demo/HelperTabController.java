@@ -206,74 +206,6 @@ public class HelperTabController {
     }
 
 
-//    public void updateSharersInUI_old() {
-//        sharersAccordion.getPanes().clear();
-//
-//        for (DeRecHelper.SharerStatus sharerStatus : State.getInstance().sharerStatuses) {
-//            // If the sharer is recovering, don't show them since it just shows an empty pane that doesn't have any
-//            // shares, and we don't know when to remove this when the recovery is complete
-//            SharerStatus ss = (SharerStatus) sharerStatus;
-//            if (ss.isRecovering() == true) {
-//                return;
-//            }
-//
-//            TitledPane pane = new TitledPane();
-//            pane.setText(sharerStatus.getId().getName());
-//            ScrollPane contentScrollPane = new ScrollPane();
-//            contentScrollPane.setFitToWidth(true);
-//            VBox contentBox = new VBox();
-//
-//            for (DeRecHelper.Share share :
-//                    State.getInstance().stateShares
-//                            .stream()
-//                            .filter(s -> s.getSharer().getId().getPublicEncryptionKey().equals(sharerStatus.getId().getPublicEncryptionKey()))
-//                            .toList()) {
-//                VBox box = new VBox();
-//                box.setSpacing(5);
-//                box.setStyle("-fx-border-color: black; -fx-padding: 10px; -fx-background-color: lightgrey;");
-//                VBox.setMargin(box, new Insets(10, 10, 10, 10));
-//
-//                if (share.getSharer().getId().getPublicEncryptionKey().compareTo(sharerStatus.getId().getPublicEncryptionKey()) == 0) {
-//                    List<Integer> versions = share.getVersions();
-//                    if (versions.size() > 0) {
-//                        HBox hbox = new HBox();
-//                        VBox inner = new VBox();
-//                        Label l1 = new Label("Secret id: " + share.getSecretId());
-//                        Label l2 = new Label("");
-//                        Label l3 = new Label(" Versions: " + versions.get(0));
-//                        Label l4 = new Label("");
-//                        inner.getChildren().addAll(l1, l2, l3, l4);
-//
-//                        Region filler = new Region();
-//                        HBox.setHgrow(filler, Priority.ALWAYS);
-//
-//                        Button deleteButton = new Button();
-//                        ImageView delbuttonView = new ImageView(new Image(getClass().getResourceAsStream("images/trashcan-icon.png")));
-//                        delbuttonView.setFitWidth(20);
-//                        delbuttonView.setFitHeight(20);
-//                        deleteButton.setGraphic(delbuttonView);
-//                        deleteButton.setStyle("-fx-background-radius: 10px; ");
-//
-//                        {
-//                            deleteButton.setOnAction(e -> {
-//                                State.getInstance().getHelper().removeVersion(sharerStatus, share.getSecretId(), versions.get(0));
-//                            });
-//                        }
-//
-//                        hbox.getChildren().addAll(inner, filler, deleteButton);
-//                        box.getChildren().add(hbox);
-//                    }
-//                }
-//                contentBox.getChildren().add(box);
-//            }
-//
-//            contentScrollPane.setContent(contentBox);
-//            pane.setContent(contentScrollPane);
-//            sharersAccordion.getPanes().add(pane);
-//        }
-//    }
-
-
     public void updateSharersInUI() {
         HashMap<DeRecHelper.SharerStatus, HashMap<DeRecSecret.Id, ArrayList<DeRecHelper.Share>>> sharerSharesMap =
                 new HashMap<>();
@@ -285,11 +217,6 @@ public class HelperTabController {
             System.out.println("sharerStatuses is empty - returning");
             return;
         }
-//
-//        System.out.println("State sharerStatuses");
-//        for (DeRecHelper.SharerStatus sharerStatus : State.getInstance().sharerStatuses) {
-//            System.out.println("  Sharer: " + sharerStatus.getId().getName() + " Obj: " + sharerStatus);
-//        }
 
         System.out.println("In updateSharersInUI, there are " + State.getInstance().stateShares.size() + " shares");
         for (DeRecHelper.Share ss: State.getInstance().stateShares) {
@@ -586,16 +513,16 @@ public class HelperTabController {
         Label instructions = new Label(
                 "Select the original user from this list that you are helping to recover");
         ToggleGroup toggleGroup = new ToggleGroup();
-        List<DeRecHelper.SharerStatus> nonRecoveringSharers =
-                State.getInstance().sharerStatuses.stream().filter(ss -> !ss.isRecovering()).toList();
-        for (DeRecHelper.SharerStatus ss: nonRecoveringSharers) {
+        ArrayList<String> addedPublicEncryptionKeys = new ArrayList<>();
+        for (DeRecHelper.SharerStatus ss: State.getInstance().sharerStatuses) {
+            if (ss.isRecovering() || addedPublicEncryptionKeys.contains(ss.getId().getPublicEncryptionKey())) {
+                continue;
+            }
+            addedPublicEncryptionKeys.add(ss.getId().getPublicEncryptionKey());
             RadioButton r = new RadioButton(ss.getId().getName());
             r.setToggleGroup(toggleGroup);
             t.getChildren().add(r);
         }
-//        RadioButton r1 = new RadioButton("Alice"); r1.setToggleGroup(toggleGroup);t.getChildren().add(r1);
-//        RadioButton r2 = new RadioButton("Bob"); r2.setToggleGroup(toggleGroup);t.getChildren().add(r2);
-//        RadioButton r3 = new RadioButton("Carol"); r3.setToggleGroup(toggleGroup);t.getChildren().add(r3);
 
         dialogContent.getChildren().add(t);
         dialog.getDialogPane().setContent(dialogContent);
