@@ -1,6 +1,8 @@
 package org.derecalliance.derec.demo;
 
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -8,13 +10,11 @@ import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
+import javafx.scene.layout.*;
 
 import org.derecalliance.derec.lib.api.*;
 import org.derecalliance.derec.demo.state.State;
+import org.derecalliance.derec.lib.impl.LibState;
 //import org.derecalliance.derec.lib.Share;
 
 
@@ -45,6 +45,7 @@ public class HelperTabController {
     Accordion notificationsAccordion = new Accordion();
     Map<DeRecHelper.Notification.StandardHelperNotificationType, String> notifText = Map.of(
             DeRecHelper.Notification.StandardHelperNotificationType.PAIR_INDICATION, "Paired with",
+            DeRecHelper.Notification.StandardHelperNotificationType.PAIR_INDICATION_RECOVERY, "Paired for recovery with",
             DeRecHelper.Notification.StandardHelperNotificationType.UNPAIR_INDICATION, "Unpaired with",
             DeRecHelper.Notification.StandardHelperNotificationType.UPDATE_INDICATION, "Received share from",
             DeRecHelper.Notification.StandardHelperNotificationType.VERIFY_INDICATION, "Received verification from",
@@ -130,7 +131,31 @@ public class HelperTabController {
             DeRecHelper.NotificationResponse response =
                     State.getInstance()
                             .getHelper()
-                            .newNotificationResponse(userResp, "dummy response");
+                            .newNotificationResponse(userResp, "dummy response", null);
+            System.out.println("Constructed the response:");
+            return response;
+        } else if (derecNotification.getType() == DeRecHelper.Notification.StandardHelperNotificationType.PAIR_INDICATION_RECOVERY) {
+            System.out.println("SHARER " + (derecNotification.getSharerId().getName() != null ? "unknown" :
+                    derecNotification.getSharerId().getName()) + " is trying to recover");
+
+            System.out.println("about to call askUserToReconcileIdentities(" + derecNotification.getType() + ")");
+            CompletableFuture<DeRecHelper.SharerStatus> resultFuture = askUserToReconcileIdentities(derecNotification);
+            System.out.println("Got out of askUserToReconcileIdentities");
+            System.out.println(resultFuture);
+
+            DeRecHelper.SharerStatus userRespSharerStatus = null;
+            try {
+                System.out.println("waiting for the derecidentity future to complete");
+                userRespSharerStatus = resultFuture.get();
+            } catch (Exception ex) {
+                System.out.println("Exception in getting result from the future");
+                ex.printStackTrace();
+            }
+            System.out.println("Got the response from the user after completing the future: " + userRespSharerStatus.getId());
+            DeRecHelper.NotificationResponse response =
+                    State.getInstance()
+                            .getHelper()
+                            .newNotificationResponse(true, "dummy response", userRespSharerStatus);
             System.out.println("Constructed the response:");
             return response;
         } else {
@@ -156,7 +181,7 @@ public class HelperTabController {
         DeRecHelper.NotificationResponse response =
                 State.getInstance()
                         .getHelper()
-                        .newNotificationResponse(true, "dummy response");
+                        .newNotificationResponse(true, "dummy response", null);
         return response;
     }
 
@@ -166,6 +191,16 @@ public class HelperTabController {
             boolean userResponse = okToListStoredShares(derecNotification);
             System.out.println("okToListStoredShares responded with " + userResponse + ", Completing future");
             resultFuture.complete(userResponse);
+        });
+        return resultFuture;
+    }
+
+    public CompletableFuture<DeRecHelper.SharerStatus> askUserToReconcileIdentities(DeRecHelper.Notification derecNotification) {
+        CompletableFuture<DeRecHelper.SharerStatus> resultFuture = new CompletableFuture<>();
+        Platform.runLater(() -> {
+            DeRecHelper.SharerStatus originalSharerStatus = getOriginalIdentity(derecNotification);
+            System.out.println("getOriginalIdentity responded with " + originalSharerStatus + ", Completing future");
+            resultFuture.complete(originalSharerStatus);
         });
         return resultFuture;
     }
@@ -538,6 +573,158 @@ public class HelperTabController {
         return false;
 
     }
+
+    private DeRecHelper.SharerStatus getOriginalIdentity(DeRecHelper.Notification deRecNotification) {
+        System.out.println("in getOriginalIdentity, derecNotification = " + deRecNotification.getType());
+        Dialog<String> dialog = new Dialog<>();
+        dialog.setTitle("Reconcile user");
+
+        VBox dialogContent = new VBox(10);
+        dialogContent.setPadding(new Insets(10, 10, 10, 10));
+
+        TilePane t = new TilePane();
+        Label instructions = new Label(
+                "Select the original user from this list that you are helping to recover");
+        ToggleGroup toggleGroup = new ToggleGroup();
+        List<DeRecHelper.SharerStatus> nonRecoveringSharers =
+                State.getInstance().sharerStatuses.stream().filter(ss -> !ss.isRecovering()).toList();
+        for (DeRecHelper.SharerStatus ss: nonRecoveringSharers) {
+            RadioButton r = new RadioButton(ss.getId().getName());
+            r.setToggleGroup(toggleGroup);
+            t.getChildren().add(r);
+        }
+//        RadioButton r1 = new RadioButton("Alice"); r1.setToggleGroup(toggleGroup);t.getChildren().add(r1);
+//        RadioButton r2 = new RadioButton("Bob"); r2.setToggleGroup(toggleGroup);t.getChildren().add(r2);
+//        RadioButton r3 = new RadioButton("Carol"); r3.setToggleGroup(toggleGroup);t.getChildren().add(r3);
+
+        dialogContent.getChildren().add(t);
+        dialog.getDialogPane().setContent(dialogContent);
+
+        ButtonType submitButtonType = new ButtonType("Submit", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(submitButtonType);
+
+        // Handle user selection
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == submitButtonType) {
+                RadioButton selectedRadioButton = (RadioButton) toggleGroup.getSelectedToggle();
+                if (selectedRadioButton != null) {
+                    String selectedSharerName = selectedRadioButton.getText();
+                    System.out.println("------------- selectedSharerName in result convertor: " + selectedSharerName);
+                    // Retrieve the corresponding DeRecIdentity based on the selectedSharerName
+                    // Example: DeRecIdentity selectedIdentity = getDeRecIdentity(selectedSharerName);
+                    // Return the selectedIdentity
+                    // ...
+                    return selectedSharerName;
+                }
+            }
+            return null; // User canceled or no selection
+        });
+
+        dialog.initOwner(MainApp.primaryStage);
+// Show the dialog
+        Optional<String> result = dialog.showAndWait();
+        if (result.isPresent()) {
+            String selectedSharerName = result.get();
+            System.out.println("------------- selectedSharerName after result.isPresent(): " + selectedSharerName);
+
+            Optional<DeRecHelper.SharerStatus> originalSharer =
+                    State.getInstance().sharerStatuses.stream()
+                            .filter(ss -> ss.getId().getName().equals(selectedSharerName))
+                            .findFirst();
+            if (originalSharer.isPresent()) {
+                return originalSharer.get();
+            } else {
+                return null; // Sharer not found
+            }
+        } else {
+            return null; // User canceled
+        }
+//        .ifPresent(selectedSharerName -> {
+//            System.out.println("------------- selectedSharerName after showandwait: " + selectedSharerName);
+//            Optional<DeRecHelper.SharerStatus> originalSharer =
+//                        State.getInstance().sharerStatuses.stream().filter(ss -> ss.getId().getName().equals(selectedSharerName)).findFirst();
+//                System.out.println("User selected original sharer: " + originalSharer);
+//                return originalSharer.isPresent() ? originalSharer.get().getId() : null;
+//        });
+//        return null;
+    }
+
+//    private DeRecIdentity getOriginalIdentity2(DeRecHelper.Notification deRecNotification) {
+//        System.out.println("in getOriginalIdentity, derecNotification = " + deRecNotification.getType());
+//        /*
+//        create dialog with text asking if helper wants to continue helping with recovery
+//        request to list stored shares received from alice
+//        accept/deny
+//         */
+//
+//        Alert alert = new Alert(Alert.AlertType.NONE);
+//        alert.setTitle("Data Retrieval Check");
+//        alert.setHeaderText("Sharer " + deRecNotification.getSharerId().getName() + " is trying to pair in recovery " +
+//                "mode");
+//        alert.setContentText("Do you want to allow this?\nYou should do this only if you are sure " + deRecNotification.getSharerId().getName() + " is trying to recover.");
+//
+//        TilePane t = new TilePane();
+//        Label l = new Label("Select the original user from this list that you are helping to recover");
+//        List<String> existingSharers = State.getInstance().sharerStatuses.stream().map(ss -> ss.getId().getName()).toList();
+//        for (DeRecHelper.SharerStatus ss : State.getInstance().sharerStatuses) {
+//            RadioButton r = new RadioButton(ss.getId().getName());
+//            t.getChildren().add(r);
+//        }
+//
+//        Dialog<String> dialog = new Dialog<>();
+//        dialog.setTitle("Reconcile user");
+//
+//        VBox dialogContent = new VBox(10);
+//        dialogContent.setPadding(new Insets(10, 10, 10, 10));
+//
+//        Label instructions = new Label(
+//                "Select the original user from this list that you are helping to recover");
+//        ToggleGroup toggleGroup = new ToggleGroup();
+//
+//        for (DeRecHelper.SharerStatus ss : State.getInstance().sharerStatuses) {
+//            RadioButton r = new RadioButton(ss.getId().getName());
+//            r.setToggleGroup(toggleGroup);
+//            dialogContent.getChildren().add(r);
+//        }
+//
+//        // Set the dialog pane
+//        DialogPane dialogPane = dialog.getDialogPane();
+//        dialogPane.setContent(dialogContent);
+//        dialogPane.getButtonTypes().addAll(ButtonType.FINISH);
+//
+//        // Create a submit button
+//        Button submitButton = new Button("Submit");
+//        submitButton.setOnAction(e -> {
+//            RadioButton selectedRadioButton = (RadioButton) toggleGroup.getSelectedToggle();
+//            if (selectedRadioButton != null) {
+//                String selectedSharerName = selectedRadioButton.getText();
+//                System.out.println("toggle: selectedSharerName: " + selectedSharerName);
+//                // You can return the selectedAnimal value to your application logic here
+//                Optional<DeRecHelper.SharerStatus> originalSharer =
+//                        State.getInstance().sharerStatuses.stream().filter(ss -> ss.getId().getName().equals(selectedSharerName)).findFirst();
+//                System.out.println("User selected original sharer: " + originalSharer);
+//                return originalSharer.isPresent() ? originalSharer.get().getId() : null;
+//            } else {
+//                System.out.println("No original user selected.");
+//            }
+//        });
+//
+//
+//        Optional<String> userChoice = dialog.showAndWait();
+//        System.out.println("Came out of user-reconcile dialog");
+//        if (userChoice.isPresent()) {
+//            String originalUser = userChoice.get();
+//            System.out.println("alert user choice is " + originalUser);
+//            Optional<DeRecHelper.SharerStatus> originalSharer =
+//                    State.getInstance().sharerStatuses.stream().filter(ss -> ss.getId().getName().equals(originalUser)).findFirst();
+//            System.out.println("User selected original sharer: " + originalSharer);
+//            return originalSharer.isPresent() ? originalSharer.get().getId() : null;
+////            return userChoice.get() == ButtonType.YES;
+//        }
+//        System.out.println("returning false");
+//        return null;
+//
+//    }
 
     // Method to load shares for a specific sharer when an accordion is expanded
     private void loadSharesForSharer(DeRecHelper.SharerStatus sharerStatus) {
