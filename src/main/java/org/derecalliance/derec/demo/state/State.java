@@ -362,7 +362,7 @@ public class State {
             ArrayList<DisplayEntry> updatedSharerTabVersionsContents = new ArrayList<>();
             for (var entry: userSelections.secret.getVersions().entrySet()) {
                 String title = "Version: " + entry.getKey();
-                String contents = "Protected Data: " + new String(entry.getValue().getProtectedValue(),
+                String contents = "Protected Data: \n" + new String(entry.getValue().getProtectedValue(),
                         StandardCharsets.UTF_8) + "\n" +
                         "Protected: " + (entry.getValue().isProtected() ? "Yes" : "No");
                 updatedSharerTabVersionsContents.add(new DisplayEntry(title, contents, entry.getValue()));
