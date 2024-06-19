@@ -103,7 +103,7 @@
                         <id>default-cli</id>
                         <configuration>
                             <mainClass>
-                                org.derecalliance.derec.demo/org.derecalliance.derec.demo.HelloApplication
+                                org.derecalliance.derec.demo/org.derecalliance.derec.demo.MainApp
                             </mainClass>
                             <launcher>app</launcher>
                             <jlinkZipName>app</jlinkZipName>
