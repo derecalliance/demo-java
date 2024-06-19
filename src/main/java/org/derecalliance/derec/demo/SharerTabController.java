@@ -78,10 +78,11 @@ public class SharerTabController {
 
     ScrollPane notificationsAccordionScrollPane;
 
-    // For showing recoveryCompleteDialog
+    // For showing recoveryCompleteAlert
     private boolean isShowRecoveryCompleteScheduled = false;
     private Timeline showRecoveryCompleteTimeline;
     ArrayList<DeRecStatusNotification> recoveryCompleteNotifications = new ArrayList<>();
+    final String recoverySecretName = "RecoverySecret";
 
     @FXML
     private void initialize() {
@@ -169,7 +170,7 @@ public class SharerTabController {
             // If a sharer has started in recovery mode, create a dummy recovery secret for them to pair, only if it
             // hasn't already been created.
             if (State.getInstance().getUserSelections().isRecovering()) {
-                String recoverySecretName = "RecoverySecret";
+
                 Optional<? extends DeRecSecret> existingRecoverySecret =
                         State.getInstance().getSharer().getSecrets().stream().filter(s -> s.getDescription() ==
                         recoverySecretName).findFirst();
@@ -737,17 +738,46 @@ public class SharerTabController {
                 // Your code to run after 3 seconds
                 System.out.println("Executed after 3 seconds");
                 System.out.println(recoveryCompleteNotifications);
+                StringBuilder recoveredSecretsVersionsListString = new StringBuilder();
                 for (DeRecStatusNotification notif : recoveryCompleteNotifications) {
                     if (notif.getVersion().isPresent()) {
                         DeRecVersion v = notif.getVersion().get();
-                        System.out.println("Secret: " + notif.getSecret().getDescription() + ", version " + v.getVersionNumber());
-
-                    } else {
-                        System.out.println("Secret: " + notif.getSecret().getDescription());
+                        recoveredSecretsVersionsListString.append("Secret: " + notif.getSecret().getDescription() + ", " +
+                                "version " + v.getVersionNumber() + "\n");
                     }
+
+                }
+
+                if (!recoveredSecretsVersionsListString.isEmpty()) {
+                    Alert alert = new Alert(Alert.AlertType.NONE);
+                    alert.setTitle("Recovery Confirmation");
+                    alert.setHeaderText("Exit recovery mode?");
+                    alert.setContentText("We have successfully recovered the following secrets:\n\n" + recoveredSecretsVersionsListString + "\nDo you want to exit recovery mode?");
+                    alert.getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+                    alert.initOwner(MainApp.primaryStage);
+
+                    alert.showAndWait().ifPresent(response -> {
+                        if (response == ButtonType.OK) {
+                            // delete the recovering secret
+                            // switch view to the first recovered secret from recoveredSecretsVersionsList
+                            System.out.println("About to close recoverysecret");
+                            Optional<? extends DeRecSecret> recoverySecret =
+                                    State.getInstance().getSharer().getSecrets().stream().filter(s -> s.getDescription().equals(recoverySecretName)).findFirst();
+                            Optional<? extends DeRecSecret> secretToSelect =
+                                    State.getInstance().getSharer().getSecrets().stream().filter(s -> !s.getDescription().equals(recoverySecretName)).findFirst();
+                            if (recoverySecret.isPresent() && secretToSelect.isPresent()) {
+                                System.out.println("Selecting secret " + secretToSelect.get().getDescription());
+                                secretsDropdown.setValue(secretToSelect.get().getDescription());
+                                secretsDropdownChanged(secretToSelect.get().getDescription());
+                                System.out.println("Closing secret " + recoverySecret.get().getDescription());
+                                recoverySecret.get().close();
+
+                            }
+                        }
+                    });
                 }
                 recoveryCompleteNotifications = new ArrayList<>();
-                isShowRecoveryCompleteScheduled = false; // Reset the flag after execution
+                isShowRecoveryCompleteScheduled = false;
             });
         }));
         showRecoveryCompleteTimeline.setCycleCount(1);
