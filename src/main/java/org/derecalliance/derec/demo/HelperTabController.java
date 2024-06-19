@@ -504,14 +504,15 @@ public class HelperTabController {
     private DeRecHelper.SharerStatus getOriginalIdentity(DeRecHelper.Notification deRecNotification) {
         System.out.println("in getOriginalIdentity, derecNotification = " + deRecNotification.getType());
         Dialog<String> dialog = new Dialog<>();
-        dialog.setTitle("Reconcile user");
+        dialog.setTitle("Select Original Sharer");
 
         VBox dialogContent = new VBox(10);
         dialogContent.setPadding(new Insets(10, 10, 10, 10));
 
         TilePane t = new TilePane();
         Label instructions = new Label(
-                "Select the original user from this list that you are helping to recover");
+                "Looks like you are pairing with somebody to help them recover their secrets.\n" +
+                        "From the list below, select the person you are helping to recover");
         ToggleGroup toggleGroup = new ToggleGroup();
         ArrayList<String> addedPublicEncryptionKeys = new ArrayList<>();
         for (DeRecHelper.SharerStatus ss: State.getInstance().sharerStatuses) {
@@ -524,6 +525,7 @@ public class HelperTabController {
             t.getChildren().add(r);
         }
 
+        dialogContent.getChildren().add(instructions);
         dialogContent.getChildren().add(t);
         dialog.getDialogPane().setContent(dialogContent);
 

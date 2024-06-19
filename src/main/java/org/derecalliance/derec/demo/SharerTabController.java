@@ -1,5 +1,7 @@
 package org.derecalliance.derec.demo;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -12,6 +14,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 //import org.derecalliance.derec.api.*;
+import javafx.util.Duration;
 import org.derecalliance.derec.demo.state.State;
 //import org.derecalliance.derec.lib.Version;
 import org.derecalliance.derec.lib.api.*;
@@ -74,6 +77,11 @@ public class SharerTabController {
     Accordion notificationsAccordion = new Accordion();
 
     ScrollPane notificationsAccordionScrollPane;
+
+    // For showing recoveryCompleteDialog
+    private boolean isShowRecoveryCompleteScheduled = false;
+    private Timeline showRecoveryCompleteTimeline;
+    ArrayList<DeRecStatusNotification> recoveryCompleteNotifications = new ArrayList<>();
 
     @FXML
     private void initialize() {
@@ -182,6 +190,7 @@ public class SharerTabController {
 
         Platform.runLater(() -> {
             if (derecNotification.getType() == DeRecStatusNotification.StandardNotificationType.RECOVERY_COMPLETE) {
+                scheduleShowRecoveryCompleteDialog(derecNotification);
                 if (State.getInstance().getUserSelections().getSecret().getSecretId().equals(derecNotification.getSecret().getSecretId())) {
                     System.out.println("Recovery complete: setting secret.isRecovering to false");
                     State.getInstance().getUserSelections().setRecovering(false);
@@ -713,5 +722,35 @@ public class SharerTabController {
                 State.getInstance().getUserSelections().setRecovering(secret.isRecovering());
             }
         }
+    }
+    private void scheduleShowRecoveryCompleteDialog(DeRecStatusNotification recoveryNotification) {
+        recoveryCompleteNotifications.add(recoveryNotification);
+
+        if (isShowRecoveryCompleteScheduled) {
+            showRecoveryCompleteTimeline.stop();
+        } else {
+            isShowRecoveryCompleteScheduled = true;
+        }
+
+        showRecoveryCompleteTimeline = new Timeline(new KeyFrame(Duration.seconds(3), event -> {
+            Platform.runLater(() -> {
+                // Your code to run after 3 seconds
+                System.out.println("Executed after 3 seconds");
+                System.out.println(recoveryCompleteNotifications);
+                for (DeRecStatusNotification notif : recoveryCompleteNotifications) {
+                    if (notif.getVersion().isPresent()) {
+                        DeRecVersion v = notif.getVersion().get();
+                        System.out.println("Secret: " + notif.getSecret().getDescription() + ", version " + v.getVersionNumber());
+
+                    } else {
+                        System.out.println("Secret: " + notif.getSecret().getDescription());
+                    }
+                }
+                recoveryCompleteNotifications = new ArrayList<>();
+                isShowRecoveryCompleteScheduled = false; // Reset the flag after execution
+            });
+        }));
+        showRecoveryCompleteTimeline.setCycleCount(1);
+        showRecoveryCompleteTimeline.play();
     }
 }
