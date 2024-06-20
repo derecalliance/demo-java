@@ -18,6 +18,8 @@ import javafx.util.Duration;
 import org.derecalliance.derec.demo.state.State;
 //import org.derecalliance.derec.lib.Version;
 import org.derecalliance.derec.lib.api.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -83,6 +85,8 @@ public class SharerTabController {
     private Timeline showRecoveryCompleteTimeline;
     ArrayList<DeRecStatusNotification> recoveryCompleteNotifications = new ArrayList<>();
     final String recoverySecretName = "RecoverySecret";
+
+    Logger logger = LoggerFactory.getLogger(this.getClass().getName());
 
     @FXML
     private void initialize() {
@@ -575,6 +579,9 @@ public class SharerTabController {
                         nameAndContactInfo.contactInfo,
                         scannedContact.getTransportUri(),
                         scannedContact.getPublicEncryptionKey(), null);
+
+
+                logger.debug("showPairWithHelperDialog creating contact with helperId: " + helperId.toString());
                 ArrayList<DeRecIdentity> helperIdList =
                         new ArrayList<DeRecIdentity>();
                 helperIdList.add(helperId);

@@ -15,6 +15,8 @@ import javafx.scene.layout.*;
 import org.derecalliance.derec.lib.api.*;
 import org.derecalliance.derec.demo.state.State;
 import org.derecalliance.derec.lib.impl.LibState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 //import org.derecalliance.derec.lib.Share;
 
 
@@ -53,6 +55,8 @@ public class HelperTabController {
             DeRecHelper.Notification.StandardHelperNotificationType.RECOVER_SECRET_INDICATION, "Sent share for " +
                     "recovery to"
     );
+
+    Logger logger = LoggerFactory.getLogger(this.getClass().getName());
 
     @FXML
     private void initialize() {
@@ -93,6 +97,11 @@ public class HelperTabController {
         });
 
         State.getInstance().setHelper(helper);
+        logger.debug("Created helper with public encryption key" + State.getInstance().getHelper().getPublicEncryptionKey());
+        logger.debug("Created helper with private encryption key" + State.getInstance().getHelper().getPrivateEncryptionKey());
+        logger.debug("Created helper with public signature key" + State.getInstance().getHelper().getPublicSignatureKey());
+        logger.debug("Created helper with private signature key" + State.getInstance().getHelper().getPrivateSignatureKey());
+
     }
 
 
