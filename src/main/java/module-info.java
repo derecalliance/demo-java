@@ -8,6 +8,7 @@ module org.derecalliance.derec.demo {
     requires org.derecalliance.derec.lib.api;
     requires org.derecalliance.derec.lib.impl;
     requires org.controlsfx.controls;
+    requires org.slf4j;
 
     uses org.derecalliance.derec.lib.api.SharerFactory;
     uses org.derecalliance.derec.lib.api.HelperFactory;

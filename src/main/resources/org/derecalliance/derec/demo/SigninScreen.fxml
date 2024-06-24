@@ -40,13 +40,13 @@
             <Insets/>
         </VBox.margin>
     </TextField>
-<!--    <ComboBox fx:id="modeSelectionDropdown" onAction="#handleModeSelectionChanges" prefWidth="150.0"-->
-<!--              promptText="Normal Mode" style="-fx-background-color: white;" styleClass="mode-selection-combobox"-->
-<!--              stylesheets="@styles.css">-->
-<!--        <VBox.margin>-->
-<!--            <Insets top="20.0"/>-->
-<!--        </VBox.margin>-->
-<!--    </ComboBox>-->
+    <ComboBox fx:id="modeSelectionDropdown" onAction="#handleModeSelectionChanges" prefWidth="150.0"
+              promptText="Normal Mode" style="-fx-background-color: white;" styleClass="mode-selection-combobox"
+              stylesheets="@styles.css">
+        <VBox.margin>
+            <Insets top="20.0"/>
+        </VBox.margin>
+    </ComboBox>
     <Button maxWidth="Infinity" onAction="#handleSigninSubmit" text="Submit">
         <VBox.margin>
             <Insets top="30.0"/>

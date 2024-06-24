@@ -14,6 +14,11 @@ import javafx.collections.ObservableMap;
 //import org.derecalliance.derec.api.*;
 //import org.derecalliance.derec.lib.Share;
 //import org.derecalliance.derec.lib.Version;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 import org.derecalliance.derec.lib.api.*;
 
 //import java.security.KeyPair;
@@ -33,6 +38,11 @@ public class State {
             this.contents = contents;
             this.associatedObj = associatedObj;
         }
+//        public DisplayEntry(String title, TextFlow texFlowContents, Object associatedObj) {
+//            this.title = title;
+//            this.textFlowContents = texFlowContents;
+//            this.associatedObj = associatedObj;
+//        }
         @Override
         public boolean equals(Object obj) {
             if (this == obj) {
@@ -362,10 +372,29 @@ public class State {
             ArrayList<DisplayEntry> updatedSharerTabVersionsContents = new ArrayList<>();
             for (var entry: userSelections.secret.getVersions().entrySet()) {
                 String title = "Version: " + entry.getKey();
-                String contents = "Protected Data: " + new String(entry.getValue().getProtectedValue(),
-                        StandardCharsets.UTF_8) + "\n" +
-                        "Protected: " + (entry.getValue().isProtected() ? "Yes" : "No");
+                String contents = "Protected Data: \n" + new String(entry.getValue().getProtectedValue(),
+                        StandardCharsets.UTF_8) + "\n\n" +
+                        (entry.getValue().isProtected() ? "This version is protected" : "This version is not " +
+                                "protected yet");
+//                String title = "Version: " + entry.getKey();
+//
+//                // Create Text objects for different parts
+//                Text prefix = new Text("Protected Data: \n" + new String(entry.getValue().getProtectedValue(), StandardCharsets.UTF_8) + "\n\n");
+//
+//                Text status = new Text(entry.getValue().isProtected() ? "This version is protected" : "This version is not protected yet");
+//                status.setFont(Font.font("System", FontPosture.ITALIC, 12));
+//                if (entry.getValue().isProtected()) {
+//                    status.setFill(Color.GREEN);
+//                } else {
+//                    status.setFill(Color.RED);
+//                }
+//
+//                TextFlow textFlow = new TextFlow(prefix, status);
+//                updatedSharerTabVersionsContents.add(new DisplayEntry(title, textFlow.toString(), entry.getValue()));
+
                 updatedSharerTabVersionsContents.add(new DisplayEntry(title, contents, entry.getValue()));
+
+
             }
             if (!updatedSharerTabVersionsContents.equals(sharerTabVersionsContents)) {
                 sharerTabVersionsContents = updatedSharerTabVersionsContents;

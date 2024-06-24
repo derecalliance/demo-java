@@ -80,6 +80,18 @@
             <artifactId>controlsfx</artifactId>
             <version>11.2.1</version>
         </dependency>
+        <dependency>
+            <groupId>src</groupId>
+            <artifactId>derec-crypto-bridge</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <!--            <scope>system</scope>-->
+            <!--            <systemPath>${project.basedir}/deps/derec-crypto-bridge-1.0-SNAPSHOT.jar</systemPath>-->
+        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.derecalliance.derec.crypto</groupId>-->
+<!--            <artifactId>cryptography</artifactId>-->
+<!--            <version>1.0-SNAPSHOT</version>-->
+<!--        </dependency>-->
     </dependencies>
 
     <build>
@@ -103,7 +115,7 @@
                         <id>default-cli</id>
                         <configuration>
                             <mainClass>
-                                org.derecalliance.derec.demo/org.derecalliance.derec.demo.HelloApplication
+                                org.derecalliance.derec.demo/org.derecalliance.derec.demo.MainApp
                             </mainClass>
                             <launcher>app</launcher>
                             <jlinkZipName>app</jlinkZipName>

@@ -23,7 +23,7 @@
                           minWidth="30"
                           promptText="Please create a secret"/>
                 <Region HBox.hgrow="ALWAYS"/>
-                <Button text="Add Secret" onAction="#handleAddSecret"/>
+                <Button fx:id="addSecretButton" text="Add Secret" onAction="#handleAddSecret"/>
             </HBox>
             <Separator style="-fx-border-width: 1 0 0 0; -fx-border-color: black; "/>
         </VBox>

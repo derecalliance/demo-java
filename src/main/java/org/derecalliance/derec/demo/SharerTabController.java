@@ -1,5 +1,7 @@
 package org.derecalliance.derec.demo;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -12,9 +14,12 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 //import org.derecalliance.derec.api.*;
+import javafx.util.Duration;
 import org.derecalliance.derec.demo.state.State;
 //import org.derecalliance.derec.lib.Version;
 import org.derecalliance.derec.lib.api.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -30,10 +35,9 @@ public class SharerTabController {
         public String stringToProtect;
         public boolean isRecovering;
 
-        public SecretDataInput(String name, String stringToProtect, boolean isRecovering) {
+        public SecretDataInput(String name, String stringToProtect) {
             this.name = name;
             this.stringToProtect = stringToProtect;
-            this.isRecovering = isRecovering;
         }
     }
 
@@ -68,11 +72,21 @@ public class SharerTabController {
     @FXML
     private Label selectedSecretLabel;
 
+    @FXML
+    private Button addSecretButton;
     Accordion helpersAccordion = new Accordion();
     Accordion versionsAccordion = new Accordion();
     Accordion notificationsAccordion = new Accordion();
 
     ScrollPane notificationsAccordionScrollPane;
+
+    // For showing recoveryCompleteAlert
+    private boolean isShowRecoveryCompleteScheduled = false;
+    private Timeline showRecoveryCompleteTimeline;
+    ArrayList<DeRecStatusNotification> recoveryCompleteNotifications = new ArrayList<>();
+    final String recoverySecretName = "RecoverySecret";
+
+    Logger logger = LoggerFactory.getLogger(this.getClass().getName());
 
     @FXML
     private void initialize() {
@@ -87,24 +101,27 @@ public class SharerTabController {
         System.out.println("Added listerner");
 
 
-        secretsDropdown.valueProperty().addListener((observable, oldValue, newValue) -> {
-            System.out.println("Listerner called with newValue: " + newValue);
-            if (newValue != null) {
-                DeRecSecret secret =
-                        (DeRecSecret) State.getInstance().getSharer().getSecrets().stream()
-                                .filter(s -> newValue.equals(((DeRecSecret) s).getDescription()))
-                                .findFirst()
-                                .orElse(null);
-                if (secret != null) {
-                    State.getInstance().getUserSelections().setSecret(secret);
-                    updateVersionsAccordion();
-                    pairWithHelperButton.setDisable(false);
 
-                    createANewVersionButton.setDisable(secret.isRecovering() ? true: false);
-                    System.out.println("Selecting secret " + secret.getDescription() + " isRecovering: " + secret.isRecovering());
-                    State.getInstance().getUserSelections().setRecovering(secret.isRecovering());
-                }
-            }
+        secretsDropdown.valueProperty().addListener((observable, oldValue, newValue) -> {
+            secretsDropdownChanged(newValue);
+//            System.out.println("Listerner called with newValue: " + newValue);
+//            if (newValue != null) {
+//                DeRecSecret secret =
+//                        (DeRecSecret) State.getInstance().getSharer().getSecrets().stream()
+//                                .filter(s -> newValue.equals(((DeRecSecret) s).getDescription()))
+//                                .findFirst()
+//                                .orElse(null);
+//                if (secret != null) {
+//                    State.getInstance().getUserSelections().setSecret(secret);
+//                    updateVersionsAccordion();
+//                    pairWithHelperButton.setDisable(false);
+//
+//                    createANewVersionButton.setDisable(secret.isRecovering() ? true: false);
+//                    addSecretButton.setDisable(secret.isRecovering() ? true : false);
+//                    System.out.println("Selecting secret " + secret.getDescription() + " isRecovering: " + secret.isRecovering());
+//                    State.getInstance().getUserSelections().setRecovering(secret.isRecovering());
+//                }
+//            }
         });
 
 //        State.getInstance().helperStatusesForSelectedSecret.addListener((ListChangeListener<? super DeRecHelperStatus>) change -> {
@@ -154,6 +171,22 @@ public class SharerTabController {
             sharer.setListener((DeRecStatusNotification notification) -> sharerListener(notification));
             State.getInstance().setSharer(sharer);
 
+            // If a sharer has started in recovery mode, create a dummy recovery secret for them to pair, only if it
+            // hasn't already been created.
+            if (State.getInstance().getUserSelections().isRecovering()) {
+
+                Optional<? extends DeRecSecret> existingRecoverySecret =
+                        State.getInstance().getSharer().getSecrets().stream().filter(s -> s.getDescription() ==
+                        recoverySecretName).findFirst();
+                if (!existingRecoverySecret.isPresent()) {
+                    DeRecSecret secret = (DeRecSecret) State.getInstance().getSharer().newSecret(recoverySecretName, new byte[0], true);
+                    State.getInstance().getUserSelections().setSecret(secret);
+                    secretsDropdown.setValue(recoverySecretName);
+                    secretsDropdownChanged(recoverySecretName);
+
+                }
+            }
+
 
     }
 
@@ -162,10 +195,11 @@ public class SharerTabController {
 
         Platform.runLater(() -> {
             if (derecNotification.getType() == DeRecStatusNotification.StandardNotificationType.RECOVERY_COMPLETE) {
+                scheduleShowRecoveryCompleteDialog(derecNotification);
                 if (State.getInstance().getUserSelections().getSecret().getSecretId().equals(derecNotification.getSecret().getSecretId())) {
                     System.out.println("Recovery complete: setting secret.isRecovering to false");
                     State.getInstance().getUserSelections().setRecovering(false);
-                    State.getInstance().getUserSelections().getSecret().setRecovering(false);
+//                    State.getInstance().getUserSelections().getSecret().setRecovering(false);
                 }
             }
             State.getInstance().sharerNotifications.add(notification);
@@ -344,6 +378,7 @@ public class SharerTabController {
 
         if (State.getInstance().getUserSelections().getSecret() != null) {
             createANewVersionButton.setDisable(State.getInstance().getUserSelections().getSecret().isRecovering() ? true : false);
+            addSecretButton.setDisable(State.getInstance().getUserSelections().getSecret().isRecovering() ? true : false);
         }
     }
 
@@ -380,18 +415,18 @@ public class SharerTabController {
             Dialog<SecretDataInput> dialog = new Dialog<>();
             if (isEdit) {
                 dialog.setTitle("Edit Secret");
-                controller.getNormalModeLabel().setVisible(false);
-                controller.getRecoveryModeToggleSwitch().setVisible(false);
-                controller.getRecoveryModeLabel().setVisible(false);
+//                controller.getNormalModeLabel().setVisible(false);
+//                controller.getRecoveryModeToggleSwitch().setVisible(false);
+//                controller.getRecoveryModeLabel().setVisible(false);
                 controller.getSecretNameTextField().setVisible(false);
                 controller.getSecretNameLabel().setVisible(true);
                 controller.getSecretNameLabel().setText(description);
                 controller.getSecretDataField().setText(data);
             } else {
                 dialog.setTitle("Add Secret");
-                controller.getNormalModeLabel().setVisible(true);
-                controller.getRecoveryModeToggleSwitch().setVisible(true);
-                controller.getRecoveryModeLabel().setVisible(true);
+//                controller.getNormalModeLabel().setVisible(true);
+//                controller.getRecoveryModeToggleSwitch().setVisible(true);
+//                controller.getRecoveryModeLabel().setVisible(true);
                 controller.getSecretNameTextField().setVisible(true);
                 controller.getSecretNameLabel().setVisible(false);
             }
@@ -410,8 +445,7 @@ public class SharerTabController {
                             "name is: " + name + " and data is: " + controller.getSecretDataField().textProperty().get());
 
                     return new SecretDataInput(name,
-                            controller.getSecretDataField().textProperty().get(),
-                            controller.getRecoveryModeToggleSwitch().isSelected());
+                            controller.getSecretDataField().textProperty().get());
                 }
                 return null;
             });
@@ -432,14 +466,18 @@ public class SharerTabController {
                     } else {
                         DeRecSecret secret = (DeRecSecret) State.getInstance().getSharer().newSecret(secretDataInput.name,
                                 secretDataInput.stringToProtect.getBytes("UTF-8"),
-                                secretDataInput.isRecovering);
+                                false);
+                        secretsDropdown.setValue(secretDataInput.name);
+                        secretsDropdownChanged(secretDataInput.name);
                         System.out.println("After adding secret to lib");
 //                        System.out.println("Now, versions are: " + secret.debugStr());
 
                         if (secretsDropdown.getValue() == null) {
                             System.out.println("Setting the value of the combobox: isRecovering = " + (secret.isRecovering()));
-                            secretsDropdown.setValue(secret.getDescription());
                             State.getInstance().getUserSelections().setRecovering(secret.isRecovering());
+                            secretsDropdown.setValue(secret.getDescription());
+                            secretsDropdownChanged(secret.getDescription());
+
                         }
                     }
                     updateVersionsAccordion();
@@ -541,6 +579,9 @@ public class SharerTabController {
                         nameAndContactInfo.contactInfo,
                         scannedContact.getTransportUri(),
                         scannedContact.getPublicEncryptionKey(), null);
+
+
+                logger.debug("showPairWithHelperDialog creating contact with helperId: " + helperId.toString());
                 ArrayList<DeRecIdentity> helperIdList =
                         new ArrayList<DeRecIdentity>();
                 helperIdList.add(helperId);
@@ -668,5 +709,97 @@ public class SharerTabController {
                 ex.printStackTrace();
             }
         }
+    }
+
+    public void secretsDropdownChanged(String newValue) {
+        System.out.println("Listerner called with newValue: " + newValue);
+        if (newValue != null) {
+            DeRecSecret secret =
+                    (DeRecSecret) State.getInstance().getSharer().getSecrets().stream()
+                            .filter(s -> newValue.equals(((DeRecSecret) s).getDescription()))
+                            .findFirst()
+                            .orElse(null);
+            if (secret != null) {
+                State.getInstance().getUserSelections().setSecret(secret);
+                updateVersionsAccordion();
+                pairWithHelperButton.setDisable(false);
+
+                createANewVersionButton.setDisable(secret.isRecovering() ? true: false);
+                addSecretButton.setDisable(secret.isRecovering() ? true : false);
+                System.out.println("Selecting secret " + secret.getDescription() + " isRecovering: " + secret.isRecovering());
+                State.getInstance().getUserSelections().setRecovering(secret.isRecovering());
+            }
+        }
+    }
+    private void scheduleShowRecoveryCompleteDialog(DeRecStatusNotification recoveryNotification) {
+        recoveryCompleteNotifications.add(recoveryNotification);
+
+        if (isShowRecoveryCompleteScheduled) {
+            showRecoveryCompleteTimeline.stop();
+        } else {
+            isShowRecoveryCompleteScheduled = true;
+        }
+
+        showRecoveryCompleteTimeline = new Timeline(new KeyFrame(Duration.seconds(3), event -> {
+            Platform.runLater(() -> {
+                // Your code to run after 3 seconds
+                System.out.println("Executed after 3 seconds");
+                System.out.println(recoveryCompleteNotifications);
+                StringBuilder recoveredSecretsVersionsListString = new StringBuilder();
+                for (DeRecStatusNotification notif : recoveryCompleteNotifications) {
+                    if (notif.getVersion().isPresent()) {
+                        DeRecVersion v = notif.getVersion().get();
+                        recoveredSecretsVersionsListString.append("Secret: " + notif.getSecret().getDescription() + ", " +
+                                "version " + v.getVersionNumber() + "\n");
+                    }
+
+                }
+
+                if (!recoveredSecretsVersionsListString.isEmpty()) {
+                    Alert alert = new Alert(Alert.AlertType.NONE);
+                    alert.setTitle("Recovery Confirmation");
+                    alert.setHeaderText("Exit recovery mode?");
+                    alert.setContentText("We have successfully recovered the following secrets:\n\n" + recoveredSecretsVersionsListString + "\nDo you want to exit recovery mode?");
+                    alert.getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+                    alert.initOwner(MainApp.primaryStage);
+
+                    alert.showAndWait().ifPresent(response -> {
+                        if (response == ButtonType.OK) {
+                            // delete the recovering secret
+                            // switch view to the first recovered secret from recoveredSecretsVersionsList
+                            System.out.println("About to close recoverysecret");
+                            Optional<? extends DeRecSecret> recoverySecret =
+                                    State.getInstance().getSharer().getSecrets().stream().filter(s -> s.getDescription().equals(recoverySecretName)).findFirst();
+                            if (recoverySecret.isPresent()) {
+                                State.getInstance().getSharer().recoveryComplete(recoverySecret.get().getSecretId());
+
+                                Optional<? extends DeRecSecret> secretToSelect = State.getInstance().getSharer().getSecrets().stream().findFirst();
+                                if (secretToSelect.isPresent()) {
+                                    secretsDropdown.setValue(secretToSelect.get().getDescription());
+                                    secretsDropdownChanged(secretToSelect.get().getDescription());
+                                }
+                            }
+
+//                            Optional<? extends DeRecSecret> secretToSelect =
+//                                    State.getInstance().getSharer().getSecrets().stream().filter(s -> !s.getDescription().equals(recoverySecretName)).findFirst();
+//                            if (recoverySecret.isPresent() && secretToSelect.isPresent()) {
+//                                System.out.println("Selecting secret " + secretToSelect.get().getDescription());
+//                                secretsDropdown.setValue(secretToSelect.get().getDescription());
+//                                secretsDropdownChanged(secretToSelect.get().getDescription());
+//
+//                                // Delete the recovery secret
+//                                System.out.println("Closing secret " + recoverySecret.get().getDescription());
+//                                recoverySecret.get().close();
+//
+//                            }
+                        }
+                    });
+                }
+                recoveryCompleteNotifications = new ArrayList<>();
+                isShowRecoveryCompleteScheduled = false;
+            });
+        }));
+        showRecoveryCompleteTimeline.setCycleCount(1);
+        showRecoveryCompleteTimeline.play();
     }
 }
