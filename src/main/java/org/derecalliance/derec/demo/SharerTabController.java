@@ -770,16 +770,28 @@ public class SharerTabController {
                             System.out.println("About to close recoverysecret");
                             Optional<? extends DeRecSecret> recoverySecret =
                                     State.getInstance().getSharer().getSecrets().stream().filter(s -> s.getDescription().equals(recoverySecretName)).findFirst();
-                            Optional<? extends DeRecSecret> secretToSelect =
-                                    State.getInstance().getSharer().getSecrets().stream().filter(s -> !s.getDescription().equals(recoverySecretName)).findFirst();
-                            if (recoverySecret.isPresent() && secretToSelect.isPresent()) {
-                                System.out.println("Selecting secret " + secretToSelect.get().getDescription());
-                                secretsDropdown.setValue(secretToSelect.get().getDescription());
-                                secretsDropdownChanged(secretToSelect.get().getDescription());
-                                System.out.println("Closing secret " + recoverySecret.get().getDescription());
-                                recoverySecret.get().close();
+                            if (recoverySecret.isPresent()) {
+                                State.getInstance().getSharer().recoveryComplete(recoverySecret.get().getSecretId());
 
+                                Optional<? extends DeRecSecret> secretToSelect = State.getInstance().getSharer().getSecrets().stream().findFirst();
+                                if (secretToSelect.isPresent()) {
+                                    secretsDropdown.setValue(secretToSelect.get().getDescription());
+                                    secretsDropdownChanged(secretToSelect.get().getDescription());
+                                }
                             }
+
+//                            Optional<? extends DeRecSecret> secretToSelect =
+//                                    State.getInstance().getSharer().getSecrets().stream().filter(s -> !s.getDescription().equals(recoverySecretName)).findFirst();
+//                            if (recoverySecret.isPresent() && secretToSelect.isPresent()) {
+//                                System.out.println("Selecting secret " + secretToSelect.get().getDescription());
+//                                secretsDropdown.setValue(secretToSelect.get().getDescription());
+//                                secretsDropdownChanged(secretToSelect.get().getDescription());
+//
+//                                // Delete the recovery secret
+//                                System.out.println("Closing secret " + recoverySecret.get().getDescription());
+//                                recoverySecret.get().close();
+//
+//                            }
                         }
                     });
                 }
