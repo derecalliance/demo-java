@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox alignment="CENTER" spacing="10" styleClass="signinscreen" stylesheets="@styles.css"
+<VBox fx:id="signInScreenMain" alignment="CENTER" spacing="10" styleClass="signinscreen" stylesheets="@styles.css"
       xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="org.derecalliance.derec.demo.SigninController">
     <Label text="Decentralized Recovery" textFill="WHITE">

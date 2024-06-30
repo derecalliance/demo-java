@@ -33,6 +33,9 @@ public class SigninController {
 
     private Runnable onSignedIn;
 
+    @FXML
+    private VBox signInScreenMain;
+
     class TestUser {
         public String uri;
         public String role;
@@ -81,6 +84,17 @@ public class SigninController {
         String mode = modeSelectionDropdown.getValue();
         System.out.println("Mode: " + mode);
         if ("Recovery Mode".equals(mode)) {
+            // Make the color red
+            System.out.println("Setting color of the sign in screen to red");
+            signInScreenMain.getStyleClass().remove("signinscreen");
+            signInScreenMain.getStyleClass().add("signinscreen-recovery");
+        } else {
+            System.out.println("Setting color of the sign in screen to normal");
+            signInScreenMain.getStyleClass().remove("signinscreen-recovery");
+            signInScreenMain.getStyleClass().add("signinscreen");
+        }
+
+        if ("Recovery Mode".equals(mode)) {
             Alert alert = new Alert(Alert.AlertType.NONE);
             alert.setTitle("Recovery Confirmation");
             alert.setHeaderText("Are you sure that you want to proceed with recovery?");
@@ -91,12 +105,10 @@ public class SigninController {
             alert.showAndWait().ifPresent(response -> {
                 if (response == ButtonType.OK) {
                     State.getInstance().getUserSelections().setRecovering(true);
-//                    System.out.println("I NEED TO BE DELETED");
 
                 } else {
                     modeSelectionDropdown.getSelectionModel().select("Normal Mode");
                     State.getInstance().getUserSelections().setRecovering(false);
-//                    System.out.println("I NEED TO BE DELETED TOO");
                 }
             });
         }

@@ -2,6 +2,9 @@
     -fx-background-color: #3EB649;
 }
 
+.signinscreen-recovery {
+    -fx-background-color: #ff3030;
+}
 .sharertab-button-bar {
     -fx-background-color: #1E9629;
 }
