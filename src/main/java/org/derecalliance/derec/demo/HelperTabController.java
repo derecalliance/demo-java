@@ -119,31 +119,6 @@ public class HelperTabController {
             State.getInstance().helperNotifications.add(notification);
         });
 
-//        System.out.println("checking" + derecNotification.getType() + " == " + DeRecHelper.Notification.StandardHelperNotificationType.LIST_SECRETS_INDICATION);
-//        if (derecNotification.getType() == DeRecHelper.Notification.StandardHelperNotificationType.LIST_SECRETS_INDICATION) {
-//            System.out.println("about to call checkWithUser(" + derecNotification.getType() + ")");
-//            CompletableFuture<Boolean> resultFuture = checkWithUser(derecNotification);
-//            System.out.println("Got out of checkwithuser");
-//
-//            boolean userResp = false;
-//            try {
-//                System.out.println("waiting for the future to complete");
-//                userResp = resultFuture.get();
-//            } catch (Exception ex) {
-//                System.out.println("Exception in getting result from the future");
-//                ex.printStackTrace();
-//            }
-//            System.out.println("Got the response from the user after completing the future: " + userResp);
-////            boolean userResp = okToListStoredShares(derecNotification);
-//
-//            DeRecHelper h = State.getInstance().getHelper();
-//            DeRecHelper.NotificationResponse response =
-//                    State.getInstance()
-//                            .getHelper()
-//                            .newNotificationResponse(userResp, "dummy response", null);
-//            System.out.println("Constructed the response:");
-//            return response;
-//        } else if (derecNotification.getType() == DeRecHelper.Notification.StandardHelperNotificationType.PAIR_INDICATION_RECOVERY) {
         if (derecNotification.getType() == DeRecHelper.Notification.StandardHelperNotificationType.PAIR_INDICATION_RECOVERY) {
             System.out.println("SHARER " + (derecNotification.getSharerId().getName() != null ? "unknown" :
                     derecNotification.getSharerId().getName()) + " is trying to recover");
@@ -194,16 +169,6 @@ public class HelperTabController {
                         .newNotificationResponse(true, "dummy response", null);
         return response;
     }
-
-//    public CompletableFuture<Boolean> checkWithUser(DeRecHelper.Notification derecNotification) {
-//        CompletableFuture<Boolean> resultFuture = new CompletableFuture<>();
-//        Platform.runLater(() -> {
-//            boolean userResponse = okToListStoredShares(derecNotification);
-//            System.out.println("okToListStoredShares responded with " + userResponse + ", Completing future");
-//            resultFuture.complete(userResponse);
-//        });
-//        return resultFuture;
-//    }
 
     public CompletableFuture<DeRecHelper.SharerStatus> askUserToReconcileIdentities(DeRecHelper.Notification derecNotification) {
         CompletableFuture<DeRecHelper.SharerStatus> resultFuture = new CompletableFuture<>();
