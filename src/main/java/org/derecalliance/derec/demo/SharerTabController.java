@@ -577,8 +577,9 @@ public class SharerTabController {
                 DeRecSecret secret = State.getInstance().getUserSelections().getSecret();
                 DeRecIdentity helperId = new DeRecIdentity(nameAndContactInfo.name,
                         nameAndContactInfo.contactInfo,
-                        scannedContact.getTransportUri(),
+                        scannedContact.getTransportUri(), scannedContact.getPublicEncryptionKeyId(),
                         scannedContact.getPublicEncryptionKey(), null);
+                logger.debug("Created DeRecIdentity: " + helperId);
 
 
                 logger.debug("showPairWithHelperDialog creating contact with helperId: " + helperId.toString());
