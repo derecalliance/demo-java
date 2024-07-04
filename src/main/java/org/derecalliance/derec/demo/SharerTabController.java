@@ -165,7 +165,7 @@ public class SharerTabController {
             SharerFactory factory = loader.findFirst().orElseThrow(() -> new IllegalStateException("No " +
                     "SharerFactory implementation found"));
             System.out.println("Factory created");
-            DeRecSharer sharer = factory.createSharer(name, uri);
+            DeRecSharer sharer = factory.createSharer(name, uri, uri);
             System.out.println("Sharer created");
 
             sharer.setListener((DeRecStatusNotification notification) -> sharerListener(notification));

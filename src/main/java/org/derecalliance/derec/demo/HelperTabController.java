@@ -88,7 +88,7 @@ public class HelperTabController {
         HelperFactory factory = loader.findFirst().orElseThrow(() -> new IllegalStateException("No " +
                 "HelperFactory implementation found"));
         DeRecHelper helper = factory.createHelper(State.getInstance().getUserSelections().getName(),
-                        State.getInstance().getUserSelections().getUri());
+                        State.getInstance().getUserSelections().getUri(), State.getInstance().getUserSelections().getUri());
 
 //        helper.new NotificationResponse("x");
 
