@@ -1,6 +1,7 @@
 package org.derecalliance.derec.demo;
 
-
+import java.io.IOException;
+import java.util.Optional;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -8,12 +9,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import org.derecalliance.derec.demo.state.State;
 import org.derecalliance.derec.lib.impl.HelperImpl;
-import org.derecalliance.derec.lib.impl.LibState;
-//import org.derecalliance.derec.lib.LibState;
-
-import java.io.IOException;
-import java.time.Period;
-import java.util.Optional;
+// import org.derecalliance.derec.lib.LibState;
 
 public class MainController {
 
@@ -23,7 +19,6 @@ public class MainController {
     @FXML
     private StackPane mainContentArea;
 
-
     @FXML
     private Tab sharerTab;
 
@@ -32,21 +27,23 @@ public class MainController {
 
     private Node sharerContent;
     private Node helperContent;
+
     @FXML
     public VBox topbarVbox;
+
     @FXML
     public Region bottombarRegion;
 
-//    @FXML
-//    private Button addSharerButton;
-//
-//    @FXML
-//    private Accordion sharerAccordion;
+    //    @FXML
+    //    private Button addSharerButton;
+    //
+    //    @FXML
+    //    private Accordion sharerAccordion;
 
     @FXML
     private void initialize() {
         // Init library
-//        LibState.getInstance().init(State.getInstance().getUserSelections().getUri());
+        //        LibState.getInstance().init(State.getInstance().getUserSelections().getUri());
         // TODO: CHANGE TO SET STYLE BASED ON SECRET'S ISRECOVERING STATUS
         State.getInstance().getUserSelections().isRecovering.addListener((observable, oldValue, newValue) -> {
             System.out.println("IsRecovering Value changed: " + newValue);
@@ -59,8 +56,7 @@ public class MainController {
         preloadRoleContent();
 
         roleDropdown.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
-            mainContentArea.getChildren().setAll(
-                    "helper".equalsIgnoreCase(newValue) ? helperContent : sharerContent);
+            mainContentArea.getChildren().setAll("helper".equalsIgnoreCase(newValue) ? helperContent : sharerContent);
 
             mainContentArea.requestLayout(); // Force the VBox to update its layout
         });
@@ -73,8 +69,8 @@ public class MainController {
             roleDropdown.getSelectionModel().select("Helper");
         }
 
-//        loadSharerTab();
-//        loadHelperTab();
+        //        loadSharerTab();
+        //        loadHelperTab();
         PeriodicLibPoller periodicLibPoller = new PeriodicLibPoller(); //
         // Periodic task to copy data from the lib into app State
 
@@ -82,7 +78,7 @@ public class MainController {
 
     public void setTopAndBottomBarStyle() {
         if (State.getInstance().getUserSelections().isRecovering()) {
-//        if (State.getInstance().getUserSelections().getSecret().isRecovering()) {
+            //        if (State.getInstance().getUserSelections().getSecret().isRecovering()) {
             topbarVbox.getStyleClass().remove("topbar-normal");
             topbarVbox.getStyleClass().add("topbar-recovery");
 
@@ -99,19 +95,20 @@ public class MainController {
 
     private void loadMainContent(String role) {
         try {
-//            if (sharerContent == null) {
-//                sharerContent = FXMLLoader.load(getClass().getResource("/org/derecalliance/derec/demo/sharer-tab.fxml"));
-//            }
-//            if (helperContent == null) {
-//                helperContent = FXMLLoader.load(getClass().getResource("/org/derecalliance/derec/demo/helper-tab.fxml"));
-//            }
-//            String resource = "/org/derecalliance/derec/demo/" + role + "-tab" +
-//                    ".fxml";
-//            Node content = FXMLLoader.load(getClass().getResource(resource));
-//            mainContentArea.getChildren().setAll(content);
+            //            if (sharerContent == null) {
+            //                sharerContent =
+            // FXMLLoader.load(getClass().getResource("/org/derecalliance/derec/demo/sharer-tab.fxml"));
+            //            }
+            //            if (helperContent == null) {
+            //                helperContent =
+            // FXMLLoader.load(getClass().getResource("/org/derecalliance/derec/demo/helper-tab.fxml"));
+            //            }
+            //            String resource = "/org/derecalliance/derec/demo/" + role + "-tab" +
+            //                    ".fxml";
+            //            Node content = FXMLLoader.load(getClass().getResource(resource));
+            //            mainContentArea.getChildren().setAll(content);
 
-            mainContentArea.getChildren().setAll(
-                    "helper".equals(role) ? helperContent : sharerContent);
+            mainContentArea.getChildren().setAll("helper".equals(role) ? helperContent : sharerContent);
 
             mainContentArea.requestLayout(); // Force the VBox to update its layout
         } catch (Exception e) {
@@ -122,10 +119,12 @@ public class MainController {
     private void preloadRoleContent() {
         try {
             if (sharerContent == null) {
-                sharerContent = FXMLLoader.load(getClass().getResource("/org/derecalliance/derec/demo/sharer-tab.fxml"));
+                sharerContent =
+                        FXMLLoader.load(getClass().getResource("/org/derecalliance/derec/demo/sharer-tab.fxml"));
             }
             if (helperContent == null) {
-                helperContent = FXMLLoader.load(getClass().getResource("/org/derecalliance/derec/demo/helper-tab.fxml"));
+                helperContent =
+                        FXMLLoader.load(getClass().getResource("/org/derecalliance/derec/demo/helper-tab.fxml"));
             }
         } catch (IOException e) {
             System.out.println("Exception in preloadRoleContent");

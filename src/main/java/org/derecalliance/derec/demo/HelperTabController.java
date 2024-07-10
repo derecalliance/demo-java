@@ -1,8 +1,9 @@
 package org.derecalliance.derec.demo;
 
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -11,21 +12,12 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
-
 import javafx.util.Pair;
-import org.derecalliance.derec.lib.api.*;
 import org.derecalliance.derec.demo.state.State;
-import org.derecalliance.derec.lib.impl.LibState;
+import org.derecalliance.derec.lib.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-//import org.derecalliance.derec.lib.Share;
-
-
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+// import org.derecalliance.derec.lib.Share;
 
 public class HelperTabController {
 
@@ -38,8 +30,8 @@ public class HelperTabController {
     @FXML
     private Button notificationsButton;
 
-//    @FXML
-//    private Accordion sharersAccordion;
+    //    @FXML
+    //    private Accordion sharersAccordion;
 
     @FXML
     private VBox helperTabMiddleArea;
@@ -49,14 +41,14 @@ public class HelperTabController {
     Accordion notificationsAccordion = new Accordion();
     Map<DeRecHelper.Notification.StandardHelperNotificationType, String> notifText = Map.of(
             DeRecHelper.Notification.StandardHelperNotificationType.PAIR_INDICATION, "Paired with",
-            DeRecHelper.Notification.StandardHelperNotificationType.PAIR_INDICATION_RECOVERY, "Paired for recovery with",
+            DeRecHelper.Notification.StandardHelperNotificationType.PAIR_INDICATION_RECOVERY,
+                    "Paired for recovery with",
             DeRecHelper.Notification.StandardHelperNotificationType.UNPAIR_INDICATION, "Unpaired with",
             DeRecHelper.Notification.StandardHelperNotificationType.UPDATE_INDICATION, "Received share from",
             DeRecHelper.Notification.StandardHelperNotificationType.VERIFY_INDICATION, "Received verification from",
             DeRecHelper.Notification.StandardHelperNotificationType.LIST_SECRETS_INDICATION, "List secrets req from",
-            DeRecHelper.Notification.StandardHelperNotificationType.RECOVER_SECRET_INDICATION, "Sent share for " +
-                    "recovery to"
-    );
+            DeRecHelper.Notification.StandardHelperNotificationType.RECOVER_SECRET_INDICATION,
+                    "Sent share for " + "recovery to");
 
     Logger logger = LoggerFactory.getLogger(this.getClass().getName());
 
@@ -65,19 +57,22 @@ public class HelperTabController {
         // Initialize the tab if needed
         initLibForHelper();
         initTestData();
-        State.getInstance().sharerStatuses.addListener((ListChangeListener.Change<? extends DeRecHelper.SharerStatus> change) -> {
-            System.out.println("Updating sharerStatuses");
-            updateSharersInUI();
-        });
+        State.getInstance()
+                .sharerStatuses
+                .addListener((ListChangeListener.Change<? extends DeRecHelper.SharerStatus> change) -> {
+                    System.out.println("Updating sharerStatuses");
+                    updateSharersInUI();
+                });
         State.getInstance().stateShares.addListener((ListChangeListener.Change<? extends DeRecHelper.Share> change) -> {
             System.out.println("Updating sharers");
             updateSharersInUI();
         });
         updateSharersInUI();
 
-        State.getInstance().helperNotifications.addListener((ListChangeListener<? super DeRecHelper.Notification>) change -> {
-            updateNotificationsInUI();
-        });
+        State.getInstance().helperNotifications.addListener((ListChangeListener<? super DeRecHelper.Notification>)
+                change -> {
+                    updateNotificationsInUI();
+                });
         updateNotificationsInUI();
 
         // since the Sharer is the default tab, simulate a click on it
@@ -87,31 +82,35 @@ public class HelperTabController {
     void initLibForHelper() {
         // Create a helper in the library
         ServiceLoader<HelperFactory> loader = ServiceLoader.load(HelperFactory.class);
-        HelperFactory factory = loader.findFirst().orElseThrow(() -> new IllegalStateException("No " +
-                "HelperFactory implementation found"));
-        DeRecHelper helper = factory.createHelper(State.getInstance().getUserSelections().getName(),
-                        State.getInstance().getUserSelections().getUri(), State.getInstance().getUserSelections().getUri());
+        HelperFactory factory = loader.findFirst()
+                .orElseThrow(() -> new IllegalStateException("No " + "HelperFactory implementation found"));
+        DeRecHelper helper = factory.createHelper(
+                State.getInstance().getUserSelections().getName(),
+                State.getInstance().getUserSelections().getUri(),
+                State.getInstance().getUserSelections().getUri());
 
-//        helper.new NotificationResponse("x");
+        //        helper.new NotificationResponse("x");
 
         helper.setListener(c -> {
             return helperListener((DeRecHelper.Notification) c);
         });
 
         State.getInstance().setHelper(helper);
-        logger.debug("Created helper with public encryption key" + State.getInstance().getHelper().getPublicEncryptionKey());
-        logger.debug("Created helper with private encryption key" + State.getInstance().getHelper().getPrivateEncryptionKey());
-        logger.debug("Created helper with public signature key" + State.getInstance().getHelper().getPublicSignatureKey());
-        logger.debug("Created helper with private signature key" + State.getInstance().getHelper().getPrivateSignatureKey());
-
+        logger.debug("Created helper with public encryption key"
+                + State.getInstance().getHelper().getPublicEncryptionKey());
+        logger.debug("Created helper with private encryption key"
+                + State.getInstance().getHelper().getPrivateEncryptionKey());
+        logger.debug("Created helper with public signature key"
+                + State.getInstance().getHelper().getPublicSignatureKey());
+        logger.debug("Created helper with private signature key"
+                + State.getInstance().getHelper().getPrivateSignatureKey());
     }
 
-
     //    Function<DeRecHelper.Notification, DeRecHelper.NotificationResponse> helperListener = notification -> {
-//        // Handle the notification
-//        // Return a NotificationResponse based on the notification
-//        return new NotificationResponse(/* response details based on notification */);
-//    };
+    //        // Handle the notification
+    //        // Return a NotificationResponse based on the notification
+    //        return new NotificationResponse(/* response details based on notification */);
+    //    };
     public DeRecHelper.NotificationResponse helperListener(DeRecHelper.Notification derecNotification) {
         System.out.println("In helper listener");
 
@@ -121,12 +120,17 @@ public class HelperTabController {
             State.getInstance().helperNotifications.add(notification);
         });
 
-        if (derecNotification.getType() == DeRecHelper.Notification.StandardHelperNotificationType.PAIR_INDICATION_RECOVERY) {
-            System.out.println("SHARER " + (derecNotification.getSharerId().getName() != null ? "unknown" :
-                    derecNotification.getSharerId().getName()) + " is trying to recover");
+        if (derecNotification.getType()
+                == DeRecHelper.Notification.StandardHelperNotificationType.PAIR_INDICATION_RECOVERY) {
+            System.out.println("SHARER "
+                    + (derecNotification.getSharerId().getName() != null
+                            ? "unknown"
+                            : derecNotification.getSharerId().getName())
+                    + " is trying to recover");
 
             System.out.println("about to call askUserToReconcileIdentities(" + derecNotification.getType() + ")");
-            CompletableFuture<List<DeRecHelper.SharerStatus>> resultFuture = askUserToReconcileIdentities(derecNotification);
+            CompletableFuture<List<DeRecHelper.SharerStatus>> resultFuture =
+                    askUserToReconcileIdentities(derecNotification);
             System.out.println("Got out of askUserToReconcileIdentities");
             System.out.println(resultFuture);
 
@@ -140,18 +144,17 @@ public class HelperTabController {
             }
 
             System.out.println("Got the response from the user after completing the future: " + userRespSharerStatuses);
-            DeRecHelper.NotificationResponse response =
-                    State.getInstance()
-                            .getHelper()
-                            .newNotificationResponse(true, "dummy response", userRespSharerStatuses);
+            DeRecHelper.NotificationResponse response = State.getInstance()
+                    .getHelper()
+                    .newNotificationResponse(true, "dummy response", userRespSharerStatuses);
             System.out.println("Constructed the response:");
             return response;
         } else {
             System.out.println("notification types did not match");
         }
-//        for (int i = 0; i < 30; i++) {
-//            State.getInstance().helperNotifications.add(notification);
-//        }
+        //        for (int i = 0; i < 30; i++) {
+        //            State.getInstance().helperNotifications.add(notification);
+        //        }
 
         String str = "Helper Notification <type: " + notification.getType() + ">";
         if (notification.getSharerId() != null) {
@@ -167,13 +170,12 @@ public class HelperTabController {
         System.out.println(str);
 
         DeRecHelper.NotificationResponse response =
-                State.getInstance()
-                        .getHelper()
-                        .newNotificationResponse(true, "dummy response", null);
+                State.getInstance().getHelper().newNotificationResponse(true, "dummy response", null);
         return response;
     }
 
-    public CompletableFuture<List<DeRecHelper.SharerStatus>> askUserToReconcileIdentities(DeRecHelper.Notification derecNotification) {
+    public CompletableFuture<List<DeRecHelper.SharerStatus>> askUserToReconcileIdentities(
+            DeRecHelper.Notification derecNotification) {
         CompletableFuture<List<DeRecHelper.SharerStatus>> resultFuture = new CompletableFuture<>();
         Platform.runLater(() -> {
             List<DeRecHelper.SharerStatus> originalSharerStatuses = getOriginalIdentity(derecNotification);
@@ -183,13 +185,9 @@ public class HelperTabController {
         return resultFuture;
     }
 
-
-
-
     public void updateSharersInUI() {
         HashMap<DeRecHelper.SharerStatus, HashMap<DeRecSecret.Id, ArrayList<DeRecHelper.Share>>> sharerSharesMap =
                 new HashMap<>();
-
 
         sharersAccordion.getPanes().clear();
 
@@ -198,19 +196,23 @@ public class HelperTabController {
             return;
         }
 
-        System.out.println("In updateSharersInUI, there are " + State.getInstance().stateShares.size() + " shares");
-        for (DeRecHelper.Share ss: State.getInstance().stateShares) {
-            System.out.println("Sharer: " + ss.getSharer() + "secret: " +
-                    Base64.getEncoder().encodeToString(ss.getSecretId().getBytes()) +
-                    " versions: " + ss.getVersions());
+        System.out.println("In updateSharersInUI, there are "
+                + State.getInstance().stateShares.size() + " shares");
+        for (DeRecHelper.Share ss : State.getInstance().stateShares) {
+            System.out.println("Sharer: " + ss.getSharer() + "secret: "
+                    + Base64.getEncoder().encodeToString(ss.getSecretId().getBytes())
+                    + " versions: "
+                    + ss.getVersions());
         }
 
         // Populate sharerSharesMap (SharerStatus -> SecretId -> Shares)
         for (DeRecHelper.Share derecShare : State.getInstance().stateShares) {
             DeRecHelper.Share share = derecShare;
-            System.out.println("IN share: sharer is: " + share.getSharer().getId().getName() + " Sharer-Obj: " + share.getSharer() + "secret: " +
-                    Base64.getEncoder().encodeToString(share.getSecretId().getBytes()) +
-                    " versions: " + share.getVersions());
+            System.out.println("IN share: sharer is: "
+                    + share.getSharer().getId().getName() + " Sharer-Obj: " + share.getSharer() + "secret: "
+                    + Base64.getEncoder().encodeToString(share.getSecretId().getBytes())
+                    + " versions: "
+                    + share.getVersions());
             if (!sharerSharesMap.containsKey(share.getSharer())) {
                 sharerSharesMap.put(share.getSharer(), new HashMap<>());
             }
@@ -223,7 +225,8 @@ public class HelperTabController {
         for (DeRecHelper.SharerStatus sharerStatus : sharerSharesMap.keySet()) {
             System.out.println("  Sharer: " + sharerStatus.getId().getName() + ", sharerStatusObj: " + sharerStatus);
             for (DeRecSecret.Id secretId : sharerSharesMap.get(sharerStatus).keySet()) {
-                System.out.println("     SecretId: " + secretId + " count: " + sharerSharesMap.get(sharerStatus).get(secretId).size());
+                System.out.println("     SecretId: " + secretId + " count: "
+                        + sharerSharesMap.get(sharerStatus).get(secretId).size());
             }
         }
 
@@ -238,10 +241,9 @@ public class HelperTabController {
         }
         System.out.println("Secrets Per Sharer");
         for (DeRecHelper.SharerStatus sharerStatus : secretsPerSharer.keySet()) {
-            System.out.println("  Sharer: " + sharerStatus.getId().getName() + " Count: " + secretsPerSharer.get(sharerStatus));
+            System.out.println(
+                    "  Sharer: " + sharerStatus.getId().getName() + " Count: " + secretsPerSharer.get(sharerStatus));
         }
-
-
 
         for (DeRecHelper.SharerStatus sharerStatus : secretsPerSharer.keySet()) {
             // If the sharer is recovering, don't show them since it just shows an empty pane that doesn't have any
@@ -249,15 +251,18 @@ public class HelperTabController {
             DeRecHelper.SharerStatus ss = sharerStatus;
             System.out.println("secretsPerSharer processing sharer: " + ss);
             if (ss.isRecovering()) {
-                System.out.println("SharerStatus is recovering = continuing" + "Name: " + sharerStatus.getId().getName() + " : " + sharerStatus);
+                System.out.println("SharerStatus is recovering = continuing" + "Name: "
+                        + sharerStatus.getId().getName() + " : " + sharerStatus);
                 continue;
             }
 
-            int knownSecretsCount =
-                    sharerSharesMap.containsKey(sharerStatus) ? sharerSharesMap.get(sharerStatus).keySet().size() : 0;
+            int knownSecretsCount = sharerSharesMap.containsKey(sharerStatus)
+                    ? sharerSharesMap.get(sharerStatus).keySet().size()
+                    : 0;
             try {
-                System.out.println("knownSecretsCount = " + knownSecretsCount + " for sharerStatus " + sharerStatus + " " +
-                        "sharerSharesMap keyset " + sharerSharesMap.get(sharerStatus).keySet());
+                System.out.println("knownSecretsCount = " + knownSecretsCount + " for sharerStatus " + sharerStatus
+                        + " " + "sharerSharesMap keyset "
+                        + sharerSharesMap.get(sharerStatus).keySet());
             } catch (Exception ex) {
             }
             if (knownSecretsCount > 0) {
@@ -269,18 +274,23 @@ public class HelperTabController {
                     contentScrollPane.setFitToWidth(true);
                     VBox contentBox = new VBox();
 
-                    for (DeRecHelper.Share share :
-                            State.getInstance().stateShares
-                                    .stream()
-                                    .filter(s -> s.getSharer().getId().getPublicEncryptionKey().equals(sharerStatus.getId().getPublicEncryptionKey()))
-                                    .filter(s -> s.getSecretId().equals(secretId))
-                                    .toList()) {
+                    for (DeRecHelper.Share share : State.getInstance().stateShares.stream()
+                            .filter(s -> s.getSharer()
+                                    .getId()
+                                    .getPublicEncryptionKey()
+                                    .equals(sharerStatus.getId().getPublicEncryptionKey()))
+                            .filter(s -> s.getSecretId().equals(secretId))
+                            .toList()) {
                         VBox box = new VBox();
                         box.setSpacing(5);
                         box.setStyle("-fx-border-color: black; -fx-padding: 10px; -fx-background-color: lightgrey;");
                         VBox.setMargin(box, new Insets(10, 10, 10, 10));
 
-                        if (share.getSharer().getId().getPublicEncryptionKey().compareTo(sharerStatus.getId().getPublicEncryptionKey()) == 0) {
+                        if (share.getSharer()
+                                        .getId()
+                                        .getPublicEncryptionKey()
+                                        .compareTo(sharerStatus.getId().getPublicEncryptionKey())
+                                == 0) {
                             List<Integer> versions = share.getVersions();
                             if (versions.size() > 0) {
                                 HBox hbox = new HBox();
@@ -295,7 +305,8 @@ public class HelperTabController {
                                 HBox.setHgrow(filler, Priority.ALWAYS);
 
                                 Button deleteButton = new Button();
-                                ImageView delbuttonView = new ImageView(new Image(getClass().getResourceAsStream("images/trashcan-icon.png")));
+                                ImageView delbuttonView = new ImageView(
+                                        new Image(getClass().getResourceAsStream("images/trashcan-icon.png")));
                                 delbuttonView.setFitWidth(20);
                                 delbuttonView.setFitHeight(20);
                                 deleteButton.setGraphic(delbuttonView);
@@ -303,7 +314,9 @@ public class HelperTabController {
 
                                 {
                                     deleteButton.setOnAction(e -> {
-                                        State.getInstance().getHelper().removeVersion(sharerStatus, share.getSecretId(), versions.get(0));
+                                        State.getInstance()
+                                                .getHelper()
+                                                .removeVersion(sharerStatus, share.getSecretId(), versions.get(0));
                                     });
                                 }
 
@@ -335,62 +348,67 @@ public class HelperTabController {
                 sharersAccordion.getPanes().add(pane);
             }
 
-//            TitledPane pane = new TitledPane();
-//            pane.setText(sharerStatus.getId().getName() + " SecretId: " +  );
-//
-//            sharerSharesMap.get(sharerStatus).get(sharerStatus)
-//
-//            ScrollPane contentScrollPane = new ScrollPane();
-//            contentScrollPane.setFitToWidth(true);
-//            VBox contentBox = new VBox();
-//
-//            for (DeRecHelper.Share share :
-//                    State.getInstance().stateShares
-//                            .stream()
-//                            .filter(s -> s.getSharer().getId().getPublicEncryptionKey().equals(sharerStatus.getId().getPublicEncryptionKey()))
-//                            .toList()) {
-//                VBox box = new VBox();
-//                box.setSpacing(5);
-//                box.setStyle("-fx-border-color: black; -fx-padding: 10px; -fx-background-color: lightgrey;");
-//                VBox.setMargin(box, new Insets(10, 10, 10, 10));
-//
-//                if (share.getSharer().getId().getPublicEncryptionKey().compareTo(sharerStatus.getId().getPublicEncryptionKey()) == 0) {
-//                    List<Integer> versions = share.getVersions();
-//                    if (versions.size() > 0) {
-//                        HBox hbox = new HBox();
-//                        VBox inner = new VBox();
-//                        Label l1 = new Label("Secret id: " + share.getSecretId());
-//                        Label l2 = new Label("");
-//                        Label l3 = new Label(" Versions: " + versions.get(0));
-//                        Label l4 = new Label("");
-//                        inner.getChildren().addAll(l1, l2, l3, l4);
-//
-//                        Region filler = new Region();
-//                        HBox.setHgrow(filler, Priority.ALWAYS);
-//
-//                        Button deleteButton = new Button();
-//                        ImageView delbuttonView = new ImageView(new Image(getClass().getResourceAsStream("images/trashcan-icon.png")));
-//                        delbuttonView.setFitWidth(20);
-//                        delbuttonView.setFitHeight(20);
-//                        deleteButton.setGraphic(delbuttonView);
-//                        deleteButton.setStyle("-fx-background-radius: 10px; ");
-//
-//                        {
-//                            deleteButton.setOnAction(e -> {
-//                                State.getInstance().getHelper().removeVersion(sharerStatus, share.getSecretId(), versions.get(0));
-//                            });
-//                        }
-//
-//                        hbox.getChildren().addAll(inner, filler, deleteButton);
-//                        box.getChildren().add(hbox);
-//                    }
-//                }
-//                contentBox.getChildren().add(box);
-//            }
-//
-//            contentScrollPane.setContent(contentBox);
-//            pane.setContent(contentScrollPane);
-//            sharersAccordion.getPanes().add(pane);
+            //            TitledPane pane = new TitledPane();
+            //            pane.setText(sharerStatus.getId().getName() + " SecretId: " +  );
+            //
+            //            sharerSharesMap.get(sharerStatus).get(sharerStatus)
+            //
+            //            ScrollPane contentScrollPane = new ScrollPane();
+            //            contentScrollPane.setFitToWidth(true);
+            //            VBox contentBox = new VBox();
+            //
+            //            for (DeRecHelper.Share share :
+            //                    State.getInstance().stateShares
+            //                            .stream()
+            //                            .filter(s ->
+            // s.getSharer().getId().getPublicEncryptionKey().equals(sharerStatus.getId().getPublicEncryptionKey()))
+            //                            .toList()) {
+            //                VBox box = new VBox();
+            //                box.setSpacing(5);
+            //                box.setStyle("-fx-border-color: black; -fx-padding: 10px; -fx-background-color:
+            // lightgrey;");
+            //                VBox.setMargin(box, new Insets(10, 10, 10, 10));
+            //
+            //                if
+            // (share.getSharer().getId().getPublicEncryptionKey().compareTo(sharerStatus.getId().getPublicEncryptionKey()) == 0) {
+            //                    List<Integer> versions = share.getVersions();
+            //                    if (versions.size() > 0) {
+            //                        HBox hbox = new HBox();
+            //                        VBox inner = new VBox();
+            //                        Label l1 = new Label("Secret id: " + share.getSecretId());
+            //                        Label l2 = new Label("");
+            //                        Label l3 = new Label(" Versions: " + versions.get(0));
+            //                        Label l4 = new Label("");
+            //                        inner.getChildren().addAll(l1, l2, l3, l4);
+            //
+            //                        Region filler = new Region();
+            //                        HBox.setHgrow(filler, Priority.ALWAYS);
+            //
+            //                        Button deleteButton = new Button();
+            //                        ImageView delbuttonView = new ImageView(new
+            // Image(getClass().getResourceAsStream("images/trashcan-icon.png")));
+            //                        delbuttonView.setFitWidth(20);
+            //                        delbuttonView.setFitHeight(20);
+            //                        deleteButton.setGraphic(delbuttonView);
+            //                        deleteButton.setStyle("-fx-background-radius: 10px; ");
+            //
+            //                        {
+            //                            deleteButton.setOnAction(e -> {
+            //                                State.getInstance().getHelper().removeVersion(sharerStatus,
+            // share.getSecretId(), versions.get(0));
+            //                            });
+            //                        }
+            //
+            //                        hbox.getChildren().addAll(inner, filler, deleteButton);
+            //                        box.getChildren().add(hbox);
+            //                    }
+            //                }
+            //                contentBox.getChildren().add(box);
+            //            }
+            //
+            //            contentScrollPane.setContent(contentBox);
+            //            pane.setContent(contentScrollPane);
+            //            sharersAccordion.getPanes().add(pane);
         }
     }
 
@@ -399,8 +417,7 @@ public class HelperTabController {
         notificationsAccordion.getPanes().clear();
         HBox.setHgrow(notificationsAccordion, Priority.ALWAYS); // Allow accordion to expand horizontally
 
-        for (DeRecHelper.Notification notification :
-                State.getInstance().helperNotifications) {
+        for (DeRecHelper.Notification notification : State.getInstance().helperNotifications) {
             TitledPane pane = new TitledPane();
 
             String str = "Notification <type: " + notification.getType() + ">";
@@ -415,8 +432,10 @@ public class HelperTabController {
                 str += " Secret: " + notification.getSecretId().toString();
             }
 
-            pane.setText((notifText.containsKey(notification.getType()) ? notifText.get(notification.getType()) : "Unknown notification from") +
-                    " " + notification.getSharerId().getName());
+            pane.setText((notifText.containsKey(notification.getType())
+                            ? notifText.get(notification.getType())
+                            : "Unknown notification from")
+                    + " " + notification.getSharerId().getName());
 
             try {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("card-box.fxml"));
@@ -462,9 +481,10 @@ public class HelperTabController {
          */
         Alert alert = new Alert(Alert.AlertType.NONE);
         alert.setTitle("Data Retrieval Check");
-        alert.setHeaderText("Sharer " + deRecNotification.getSharerId().getName() + " has asked you to send a list of" +
-                " their shares.");
-        alert.setContentText("Do you want to allow this?\nYou should do this only if you are sure " + deRecNotification.getSharerId().getName() + " is trying to recover.");
+        alert.setHeaderText("Sharer " + deRecNotification.getSharerId().getName() + " has asked you to send a list of"
+                + " their shares.");
+        alert.setContentText("Do you want to allow this?\nYou should do this only if you are sure "
+                + deRecNotification.getSharerId().getName() + " is trying to recover.");
 
         alert.getButtonTypes().addAll(ButtonType.YES, ButtonType.NO);
         alert.initOwner(MainApp.primaryStage);
@@ -478,102 +498,103 @@ public class HelperTabController {
         }
         System.out.println("returning false");
         return false;
-
     }
 
-//    private List<DeRecHelper.SharerStatus> getOriginalIdentity(DeRecHelper.Notification deRecNotification) {
-//        System.out.println("in getOriginalIdentity, derecNotification = " + deRecNotification.getType());
-//        Dialog<String> dialog = new Dialog<>();
-//        dialog.setTitle("Select Original Sharer");
-//
-//        VBox dialogContent = new VBox(10);
-//        dialogContent.setPadding(new Insets(10, 10, 10, 10));
-//
-////        TilePane t = new TilePane();
-//        Label instructions = new Label(
-//                "Looks like you are pairing with somebody to help them\nrecover their secrets.\n" +
-//                        "From the list below, select all the names that you are\n" +
-//                        "helping to recover, so they can recover all their secrets\n");
-//        dialogContent.getChildren().add(instructions);
-//
-////        ToggleGroup toggleGroup = new ToggleGroup();
-////        ArrayList<String> addedPublicEncryptionKeys = new ArrayList<>();
-////        for (DeRecHelper.SharerStatus ss: State.getInstance().sharerStatuses) {
-////            if (ss.isRecovering() || addedPublicEncryptionKeys.contains(ss.getId().getPublicEncryptionKey())) {
-////                continue;
-////            }
-////            addedPublicEncryptionKeys.add(ss.getId().getPublicEncryptionKey());
-////            RadioButton r = new RadioButton(ss.getId().getName());
-////            r.setToggleGroup(toggleGroup);
-////            dialogContent.getChildren().add(r);
-//////            t.getChildren().add(r);
-////        }
-//
-//        ArrayList<String> addedPublicEncryptionKeys = new ArrayList<>();
-//        for (DeRecHelper.SharerStatus ss : State.getInstance().sharerStatuses) {
-//            if (ss.isRecovering() || addedPublicEncryptionKeys.contains(ss.getId().getPublicEncryptionKey())) {
-//                continue;
-//            }
-//            addedPublicEncryptionKeys.add(ss.getId().getPublicEncryptionKey());
-//
-//            CheckBox checkBox = new CheckBox(ss.getId().getName());
-//            dialogContent.getChildren().add(checkBox);
-//        }
-////        dialogContent.getChildren().add(instructions);
-////        dialogContent.getChildren().add(t);
-//        dialog.getDialogPane().setContent(dialogContent);
-//
-//        ButtonType submitButtonType = new ButtonType("Submit", ButtonBar.ButtonData.OK_DONE);
-//        dialog.getDialogPane().getButtonTypes().addAll(submitButtonType);
-//
-//        // Handle user selection
-//        dialog.setResultConverter(dialogButton -> {
-//            if (dialogButton == submitButtonType) {
-//                RadioButton selectedRadioButton = (RadioButton) toggleGroup.getSelectedToggle();
-//                if (selectedRadioButton != null) {
-//                    String selectedSharerName = selectedRadioButton.getText();
-//                    System.out.println("------------- selectedSharerName in result convertor: " + selectedSharerName);
-//                    // Retrieve the corresponding DeRecIdentity based on the selectedSharerName
-//                    // Example: DeRecIdentity selectedIdentity = getDeRecIdentity(selectedSharerName);
-//                    // Return the selectedIdentity
-//                    // ...
-//                    return selectedSharerName;
-//                }
-//            }
-//            return null; // User canceled or no selection
-//        });
-//
-//        dialog.initOwner(MainApp.primaryStage);
-//// Show the dialog
-//        Optional<String> result = dialog.showAndWait();
-//
-////        if (result.isPresent()) {
-////            String selectedSharerName = result.get();
-////            System.out.println("------------- selectedSharerName after result.isPresent(): " + selectedSharerName);
-////
-////            Optional<DeRecHelper.SharerStatus> originalSharer =
-////                    State.getInstance().sharerStatuses.stream()
-////                            .filter(ss -> ss.getId().getName().equals(selectedSharerName))
-////                            .findFirst();
-////            if (originalSharer.isPresent()) {
-////                return originalSharer.get();
-////            } else {
-////                return null; // Sharer not found
-////            }
-////        } else {
-////            return null; // User canceled
-////        }
-//        dialog.setResultConverter(dialogButton -> {
-//            if (dialogButton == submitButtonType) {
-//                return checkBoxes.stream()
-//                        .filter(pair -> pair.getKey().isSelected())
-//                        .map(Pair::getValue)
-//                        .collect(Collectors.toList());
-//            }
-//            return null; // User canceled or no selection
-//        });
-//
-//    }
+    //    private List<DeRecHelper.SharerStatus> getOriginalIdentity(DeRecHelper.Notification deRecNotification) {
+    //        System.out.println("in getOriginalIdentity, derecNotification = " + deRecNotification.getType());
+    //        Dialog<String> dialog = new Dialog<>();
+    //        dialog.setTitle("Select Original Sharer");
+    //
+    //        VBox dialogContent = new VBox(10);
+    //        dialogContent.setPadding(new Insets(10, 10, 10, 10));
+    //
+    ////        TilePane t = new TilePane();
+    //        Label instructions = new Label(
+    //                "Looks like you are pairing with somebody to help them\nrecover their secrets.\n" +
+    //                        "From the list below, select all the names that you are\n" +
+    //                        "helping to recover, so they can recover all their secrets\n");
+    //        dialogContent.getChildren().add(instructions);
+    //
+    ////        ToggleGroup toggleGroup = new ToggleGroup();
+    ////        ArrayList<String> addedPublicEncryptionKeys = new ArrayList<>();
+    ////        for (DeRecHelper.SharerStatus ss: State.getInstance().sharerStatuses) {
+    ////            if (ss.isRecovering() || addedPublicEncryptionKeys.contains(ss.getId().getPublicEncryptionKey())) {
+    ////                continue;
+    ////            }
+    ////            addedPublicEncryptionKeys.add(ss.getId().getPublicEncryptionKey());
+    ////            RadioButton r = new RadioButton(ss.getId().getName());
+    ////            r.setToggleGroup(toggleGroup);
+    ////            dialogContent.getChildren().add(r);
+    //////            t.getChildren().add(r);
+    ////        }
+    //
+    //        ArrayList<String> addedPublicEncryptionKeys = new ArrayList<>();
+    //        for (DeRecHelper.SharerStatus ss : State.getInstance().sharerStatuses) {
+    //            if (ss.isRecovering() || addedPublicEncryptionKeys.contains(ss.getId().getPublicEncryptionKey())) {
+    //                continue;
+    //            }
+    //            addedPublicEncryptionKeys.add(ss.getId().getPublicEncryptionKey());
+    //
+    //            CheckBox checkBox = new CheckBox(ss.getId().getName());
+    //            dialogContent.getChildren().add(checkBox);
+    //        }
+    ////        dialogContent.getChildren().add(instructions);
+    ////        dialogContent.getChildren().add(t);
+    //        dialog.getDialogPane().setContent(dialogContent);
+    //
+    //        ButtonType submitButtonType = new ButtonType("Submit", ButtonBar.ButtonData.OK_DONE);
+    //        dialog.getDialogPane().getButtonTypes().addAll(submitButtonType);
+    //
+    //        // Handle user selection
+    //        dialog.setResultConverter(dialogButton -> {
+    //            if (dialogButton == submitButtonType) {
+    //                RadioButton selectedRadioButton = (RadioButton) toggleGroup.getSelectedToggle();
+    //                if (selectedRadioButton != null) {
+    //                    String selectedSharerName = selectedRadioButton.getText();
+    //                    System.out.println("------------- selectedSharerName in result convertor: " +
+    // selectedSharerName);
+    //                    // Retrieve the corresponding DeRecIdentity based on the selectedSharerName
+    //                    // Example: DeRecIdentity selectedIdentity = getDeRecIdentity(selectedSharerName);
+    //                    // Return the selectedIdentity
+    //                    // ...
+    //                    return selectedSharerName;
+    //                }
+    //            }
+    //            return null; // User canceled or no selection
+    //        });
+    //
+    //        dialog.initOwner(MainApp.primaryStage);
+    //// Show the dialog
+    //        Optional<String> result = dialog.showAndWait();
+    //
+    ////        if (result.isPresent()) {
+    ////            String selectedSharerName = result.get();
+    ////            System.out.println("------------- selectedSharerName after result.isPresent(): " +
+    // selectedSharerName);
+    ////
+    ////            Optional<DeRecHelper.SharerStatus> originalSharer =
+    ////                    State.getInstance().sharerStatuses.stream()
+    ////                            .filter(ss -> ss.getId().getName().equals(selectedSharerName))
+    ////                            .findFirst();
+    ////            if (originalSharer.isPresent()) {
+    ////                return originalSharer.get();
+    ////            } else {
+    ////                return null; // Sharer not found
+    ////            }
+    ////        } else {
+    ////            return null; // User canceled
+    ////        }
+    //        dialog.setResultConverter(dialogButton -> {
+    //            if (dialogButton == submitButtonType) {
+    //                return checkBoxes.stream()
+    //                        .filter(pair -> pair.getKey().isSelected())
+    //                        .map(Pair::getValue)
+    //                        .collect(Collectors.toList());
+    //            }
+    //            return null; // User canceled or no selection
+    //        });
+    //
+    //    }
 
     private List<DeRecHelper.SharerStatus> getOriginalIdentity(DeRecHelper.Notification deRecNotification) {
         System.out.println("in getOriginalIdentity, derecNotification = " + deRecNotification.getType());
@@ -583,17 +604,17 @@ public class HelperTabController {
         VBox dialogContent = new VBox(10);
         dialogContent.setPadding(new Insets(10, 10, 10, 10));
 
-        Label instructions = new Label(
-                "Looks like you are pairing with somebody to help them\nrecover their secrets.\n" +
-                        "From the list below, select all the names that you are\n" +
-                        "helping to recover, so they can recover all their secrets\n");
+        Label instructions = new Label("Looks like you are pairing with somebody to help them\nrecover their secrets.\n"
+                + "From the list below, select all the names that you are\n"
+                + "helping to recover, so they can recover all their secrets\n");
         dialogContent.getChildren().add(instructions);
 
         ArrayList<String> addedPublicEncryptionKeys = new ArrayList<>();
         List<Pair<CheckBox, DeRecHelper.SharerStatus>> checkBoxes = new ArrayList<>();
 
         for (DeRecHelper.SharerStatus ss : State.getInstance().sharerStatuses) {
-            if (ss.isRecovering() || addedPublicEncryptionKeys.contains(ss.getId().getPublicEncryptionKey())) {
+            if (ss.isRecovering()
+                    || addedPublicEncryptionKeys.contains(ss.getId().getPublicEncryptionKey())) {
                 continue;
             }
             addedPublicEncryptionKeys.add(ss.getId().getPublicEncryptionKey());
@@ -627,75 +648,75 @@ public class HelperTabController {
     }
 
     /*
-    private DeRecHelper.SharerStatus getOriginalIdentity(DeRecHelper.Notification deRecNotification) {
-        System.out.println("in getOriginalIdentity, derecNotification = " + deRecNotification.getType());
-        Dialog<String> dialog = new Dialog<>();
-        dialog.setTitle("Select Original Sharer");
+        private DeRecHelper.SharerStatus getOriginalIdentity(DeRecHelper.Notification deRecNotification) {
+            System.out.println("in getOriginalIdentity, derecNotification = " + deRecNotification.getType());
+            Dialog<String> dialog = new Dialog<>();
+            dialog.setTitle("Select Original Sharer");
 
-        VBox dialogContent = new VBox(10);
-        dialogContent.setPadding(new Insets(10, 10, 10, 10));
+            VBox dialogContent = new VBox(10);
+            dialogContent.setPadding(new Insets(10, 10, 10, 10));
 
-        TilePane t = new TilePane();
-        Label instructions = new Label(
-                "Looks like you are pairing with somebody to help them recover their secrets.\n" +
-                        "From the list below, select the person you are helping to recover");
-        ToggleGroup toggleGroup = new ToggleGroup();
-        ArrayList<String> addedPublicEncryptionKeys = new ArrayList<>();
-        for (DeRecHelper.SharerStatus ss: State.getInstance().sharerStatuses) {
-            if (ss.isRecovering() || addedPublicEncryptionKeys.contains(ss.getId().getPublicEncryptionKey())) {
-                continue;
-            }
-            addedPublicEncryptionKeys.add(ss.getId().getPublicEncryptionKey());
-            RadioButton r = new RadioButton(ss.getId().getName());
-            r.setToggleGroup(toggleGroup);
-            t.getChildren().add(r);
-        }
-
-        dialogContent.getChildren().add(instructions);
-        dialogContent.getChildren().add(t);
-        dialog.getDialogPane().setContent(dialogContent);
-
-        ButtonType submitButtonType = new ButtonType("Submit", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(submitButtonType);
-
-        // Handle user selection
-        dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == submitButtonType) {
-                RadioButton selectedRadioButton = (RadioButton) toggleGroup.getSelectedToggle();
-                if (selectedRadioButton != null) {
-                    String selectedSharerName = selectedRadioButton.getText();
-                    System.out.println("------------- selectedSharerName in result convertor: " + selectedSharerName);
-                    // Retrieve the corresponding DeRecIdentity based on the selectedSharerName
-                    // Example: DeRecIdentity selectedIdentity = getDeRecIdentity(selectedSharerName);
-                    // Return the selectedIdentity
-                    // ...
-                    return selectedSharerName;
+            TilePane t = new TilePane();
+            Label instructions = new Label(
+                    "Looks like you are pairing with somebody to help them recover their secrets.\n" +
+                            "From the list below, select the person you are helping to recover");
+            ToggleGroup toggleGroup = new ToggleGroup();
+            ArrayList<String> addedPublicEncryptionKeys = new ArrayList<>();
+            for (DeRecHelper.SharerStatus ss: State.getInstance().sharerStatuses) {
+                if (ss.isRecovering() || addedPublicEncryptionKeys.contains(ss.getId().getPublicEncryptionKey())) {
+                    continue;
                 }
+                addedPublicEncryptionKeys.add(ss.getId().getPublicEncryptionKey());
+                RadioButton r = new RadioButton(ss.getId().getName());
+                r.setToggleGroup(toggleGroup);
+                t.getChildren().add(r);
             }
-            return null; // User canceled or no selection
-        });
 
-        dialog.initOwner(MainApp.primaryStage);
-// Show the dialog
-        Optional<String> result = dialog.showAndWait();
-        if (result.isPresent()) {
-            String selectedSharerName = result.get();
-            System.out.println("------------- selectedSharerName after result.isPresent(): " + selectedSharerName);
+            dialogContent.getChildren().add(instructions);
+            dialogContent.getChildren().add(t);
+            dialog.getDialogPane().setContent(dialogContent);
 
-            Optional<DeRecHelper.SharerStatus> originalSharer =
-                    State.getInstance().sharerStatuses.stream()
-                            .filter(ss -> ss.getId().getName().equals(selectedSharerName))
-                            .findFirst();
-            if (originalSharer.isPresent()) {
-                return originalSharer.get();
+            ButtonType submitButtonType = new ButtonType("Submit", ButtonBar.ButtonData.OK_DONE);
+            dialog.getDialogPane().getButtonTypes().addAll(submitButtonType);
+
+            // Handle user selection
+            dialog.setResultConverter(dialogButton -> {
+                if (dialogButton == submitButtonType) {
+                    RadioButton selectedRadioButton = (RadioButton) toggleGroup.getSelectedToggle();
+                    if (selectedRadioButton != null) {
+                        String selectedSharerName = selectedRadioButton.getText();
+                        System.out.println("------------- selectedSharerName in result convertor: " + selectedSharerName);
+                        // Retrieve the corresponding DeRecIdentity based on the selectedSharerName
+                        // Example: DeRecIdentity selectedIdentity = getDeRecIdentity(selectedSharerName);
+                        // Return the selectedIdentity
+                        // ...
+                        return selectedSharerName;
+                    }
+                }
+                return null; // User canceled or no selection
+            });
+
+            dialog.initOwner(MainApp.primaryStage);
+    // Show the dialog
+            Optional<String> result = dialog.showAndWait();
+            if (result.isPresent()) {
+                String selectedSharerName = result.get();
+                System.out.println("------------- selectedSharerName after result.isPresent(): " + selectedSharerName);
+
+                Optional<DeRecHelper.SharerStatus> originalSharer =
+                        State.getInstance().sharerStatuses.stream()
+                                .filter(ss -> ss.getId().getName().equals(selectedSharerName))
+                                .findFirst();
+                if (originalSharer.isPresent()) {
+                    return originalSharer.get();
+                } else {
+                    return null; // Sharer not found
+                }
             } else {
-                return null; // Sharer not found
+                return null; // User canceled
             }
-        } else {
-            return null; // User canceled
         }
-    }
-     */
+         */
 
     // Method to load shares for a specific sharer when an accordion is expanded
     private void loadSharesForSharer(DeRecHelper.SharerStatus sharerStatus) {
@@ -732,8 +753,7 @@ public class HelperTabController {
         VBox dialogContent = new VBox(10);
         dialogContent.setPadding(new Insets(10, 10, 10, 10));
 
-        Label instructions = new Label(
-                "Please scan this code on the sharer's app");
+        Label instructions = new Label("Please scan this code on the sharer's app");
 
         ImageView qrCodeView = new ImageView();
         // Assume generateQRCodeImage returns an Image object containing the QR code
@@ -746,23 +766,22 @@ public class HelperTabController {
         dialogPane.setContent(dialogContent);
         dialogPane.getButtonTypes().addAll(ButtonType.FINISH);
 
-        State.getInstance().sharerStatuses.addListener((ListChangeListener<? super DeRecHelper.SharerStatus>) change -> {
-            System.out.println("In listener for sharerstatus change");
-            while (change.next()) {
-                System.out.printf("in next");
-                if (change.wasAdded()) {
-                    System.out.println("Change was added");
-                    dialog.close();
-                    break;
-                }
-            }
-        });
+        State.getInstance().sharerStatuses.addListener((ListChangeListener<? super DeRecHelper.SharerStatus>)
+                change -> {
+                    System.out.println("In listener for sharerstatus change");
+                    while (change.next()) {
+                        System.out.printf("in next");
+                        if (change.wasAdded()) {
+                            System.out.println("Change was added");
+                            dialog.close();
+                            break;
+                        }
+                    }
+                });
 
         dialog.initOwner(MainApp.primaryStage);
         Optional<String> result = dialog.showAndWait();
     }
 
-
-    private void initTestData() {
-    }
+    private void initTestData() {}
 }

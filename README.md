@@ -12,3 +12,6 @@
       configurations created.
 6. To start the UI application, select each name from the dropdown of run configurations and click the Play button 
    (looks like a triangle).
+
+## Formatting Files
+1. Run `mvn validate` in the root directory to format all files if changes are made.

@@ -1,15 +1,15 @@
 package org.derecalliance.derec.demo;
 
+import java.util.Random;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 
-import java.util.Random;
-
 public class HelloController {
     @FXML
     private Label welcomeText;
+
     @FXML
     private Circle myCircle;
 
