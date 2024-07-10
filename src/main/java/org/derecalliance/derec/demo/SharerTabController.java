@@ -10,6 +10,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
@@ -267,56 +268,66 @@ public class SharerTabController {
 
 
     public void updateHelpersInUI() {
-        if (State.getInstance().sharerTabHelpersContents.size() != helpersAccordion.getPanes().size()) {
-            helpersAccordion.getPanes().clear();
-            for (int i = 0; i < State.getInstance().sharerTabHelpersContents.size(); i++) {
-                TitledPane pane = new TitledPane();
-                helpersAccordion.getPanes().add(pane);
+        Platform.runLater(() -> {
+            if (State.getInstance().sharerTabHelpersContents.size() != helpersAccordion.getPanes().size()) {
+                helpersAccordion.getPanes().clear();
+                for (int i = 0; i < State.getInstance().sharerTabHelpersContents.size(); i++) {
+                    TitledPane pane = new TitledPane();
+                    helpersAccordion.getPanes().add(pane);
+                }
             }
-        }
 
-        for (int i = 0; i < State.getInstance().sharerTabHelpersContents.size(); i++) {
+            for (int i = 0; i < State.getInstance().sharerTabHelpersContents.size(); i++) {
 //            TitledPane pane = new TitledPane();
-            TitledPane titledPane = helpersAccordion.getPanes().get(i);
-            DeRecHelperStatus helperStatus =
-                    (DeRecHelperStatus) State.getInstance().sharerTabHelpersContents.get(i).associatedObj;
+                TitledPane titledPane = helpersAccordion.getPanes().get(i);
+                DeRecHelperStatus helperStatus =
+                        (DeRecHelperStatus) State.getInstance().sharerTabHelpersContents.get(i).associatedObj;
 
 //            pane.getStyleClass().add(helperStatus.getStatus() == DeRecPairingStatus.PairingStatus.PAIRED ? "green-header" : "red-header");
-            if (helperStatus.getStatus() == DeRecPairingStatus.PairingStatus.PAIRED) {
-                titledPane.getStyleClass().removeAll("yellow-header", "red-header");
-                titledPane.getStyleClass().add("green-header");
-            } else if (helperStatus.getStatus() == DeRecPairingStatus.PairingStatus.REFUSED) {
-                titledPane.getStyleClass().removeAll("green-header", "red-header");
-                titledPane.getStyleClass().add("yellow-header");
-            } else {
-                System.out.println("Helper status is: " + helperStatus.getStatus());
-                titledPane.getStyleClass().removeAll("green-header", "yellow-header");
-                titledPane.getStyleClass().add("red-header");
-            }
+                if (helperStatus.getStatus() == DeRecPairingStatus.PairingStatus.PAIRED) {
+                    titledPane.getStyleClass().removeAll("yellow-header", "red-header");
+                    titledPane.getStyleClass().add("green-header");
+                } else if (helperStatus.getStatus() == DeRecPairingStatus.PairingStatus.REFUSED) {
+                    titledPane.getStyleClass().removeAll("green-header", "red-header");
+                    titledPane.getStyleClass().add("yellow-header");
+                } else {
+                    System.out.println("Helper status is: " + helperStatus.getStatus());
+                    titledPane.getStyleClass().removeAll("green-header", "yellow-header");
+                    titledPane.getStyleClass().add("red-header");
+                }
 
-            titledPane.setText(State.getInstance().sharerTabHelpersContents.get(i).title);
-            try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("card-box.fxml"));
-                VBox cardContentBox = loader.load();
-                CardBoxController cardController = loader.getController();
-                cardController.setLabelText(State.getInstance().sharerTabHelpersContents.get(i).contents);
-                cardController.setImage("images/trashcan-icon.png");
-                cardController.getCardButton().setUserData(helperStatus);
-                cardController.setCardButtonAction(event -> {
-                    Button sourceButton = (Button) event.getSource();
-                    DeRecHelperStatus toBeDeleted = (DeRecHelperStatus) sourceButton.getUserData();
-                    System.out.println("Should unpair helper " + toBeDeleted.getId().getName());
-                    ArrayList<DeRecIdentity> idList = new ArrayList<>();
-                    idList.add(toBeDeleted.getId());
-                    State.getInstance().getUserSelections().getSecret().removeHelpersAsync(idList);
-                });
-                titledPane.setContent(cardContentBox);
+                titledPane.setText(State.getInstance().sharerTabHelpersContents.get(i).title);
+                try {
+                    FXMLLoader loader = new FXMLLoader(getClass().getResource("card-box.fxml"));
+                    VBox cardContentBox = loader.load();
+                    CardBoxController cardController = loader.getController();
+                    cardController.setLabelText(State.getInstance().sharerTabHelpersContents.get(i).contents);
+                    cardController.setImage("images/trashcan-icon.png");
+                    cardController.getCardButton().setUserData(helperStatus);
+                    cardController.setCardButtonAction(event -> {
+                        Button sourceButton = (Button) event.getSource();
+                        DeRecHelperStatus toBeDeleted = (DeRecHelperStatus) sourceButton.getUserData();
+                        System.out.println("Should unpair helper " + toBeDeleted.getId().getName());
+                        ArrayList<DeRecIdentity> idList = new ArrayList<>();
+                        idList.add(toBeDeleted.getId());
+                        State.getInstance().getUserSelections().getSecret().removeHelpersAsync(idList);
+                    });
+                    titledPane.setContent(cardContentBox);
 //                helpersAccordion.getPanes().add(titledPane);
-            } catch (Exception ex) {
-                System.out.println("Exception in Card");
-                ex.printStackTrace();
+
+                    // Refresh the helpers screen, if the user is on the Helpers sub-tab
+                    if (State.getInstance().getUserSelections().getSharerSelectedTab() == State.Selections.SharerSelectedTab.Helpers) {
+                        middleArea.getChildren().clear();
+                        createANewVersionButton.setVisible(false);
+                        pairWithHelperButton.setVisible(true);
+                        middleArea.getChildren().addAll(helpersAccordion);
+                    }
+
+                } catch (Exception ex) {
+                    logger.error("Exception in Card", ex);
+                }
             }
-        }
+        });
     }
 
     public void updateNotificationsInUI() {
@@ -513,6 +524,7 @@ public class SharerTabController {
 
     @FXML
     private void handleVersions() {
+        State.getInstance().getUserSelections().setSharerSelectedTab(State.Selections.SharerSelectedTab.Versions);
         middleArea.getChildren().clear();
         createANewVersionButton.setVisible(true);
         pairWithHelperButton.setVisible(false);
@@ -537,6 +549,7 @@ public class SharerTabController {
 
     @FXML
     private void handleHelpers() {
+        State.getInstance().getUserSelections().setSharerSelectedTab(State.Selections.SharerSelectedTab.Helpers);
         middleArea.getChildren().clear();
         createANewVersionButton.setVisible(false);
         pairWithHelperButton.setVisible(true);
