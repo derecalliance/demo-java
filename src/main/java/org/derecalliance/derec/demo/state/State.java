@@ -20,11 +20,15 @@ import javafx.scene.text.FontPosture;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import org.derecalliance.derec.lib.api.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 //import java.security.KeyPair;
 import java.util.stream.Stream;
 
 public class State {
+    Logger logger = LoggerFactory.getLogger(this.getClass().getName());
+
     public class DisplayEntry {
         public String title;
         public String contents;
@@ -127,6 +131,13 @@ public class State {
 
         public BooleanProperty isRecovering = new SimpleBooleanProperty(false);
 
+        // This variable keeps track of which of the tabs in the Sharer screen is selected.
+        public enum SharerSelectedTab {
+            Versions,
+            Helpers,
+        };
+        SharerSelectedTab sharerSelectedTab = SharerSelectedTab.Helpers;
+
         public String getName() {
             return name;
         }
@@ -181,6 +192,14 @@ public class State {
 
         public void setPaused(boolean paused) {
             this.paused = paused;
+        }
+
+        public SharerSelectedTab getSharerSelectedTab() {
+            return sharerSelectedTab;
+        }
+
+        public void setSharerSelectedTab(SharerSelectedTab sharerSelectedTab) {
+            this.sharerSelectedTab = sharerSelectedTab;
         }
     }
 
