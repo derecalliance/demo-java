@@ -38,7 +38,7 @@ public class PeriodicLibPoller {
                     }
                 },
                 0,
-                1000); // TODO make this more frequent
+                1000);
     }
 
     public void stop() {

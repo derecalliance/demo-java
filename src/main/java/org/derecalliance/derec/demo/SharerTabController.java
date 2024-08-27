@@ -48,7 +48,6 @@ public class SharerTabController {
     class SecretDataInput {
         public String name;
         public String stringToProtect;
-        public boolean isRecovering;
 
         public SecretDataInput(String name, String stringToProtect) {
             this.name = name;
@@ -70,12 +69,6 @@ public class SharerTabController {
     private ComboBox<String> secretsDropdown;
 
     @FXML
-    private Button versionsButton;
-
-    @FXML
-    private Button helpersButton;
-
-    @FXML
     private Button createANewVersionButton;
 
     @FXML
@@ -85,23 +78,16 @@ public class SharerTabController {
     private VBox middleArea;
 
     @FXML
-    private Label selectedSecretLabel;
-
-    @FXML
     private Button addSecretButton;
 
     Accordion helpersAccordion = new Accordion();
     Accordion versionsAccordion = new Accordion();
     Accordion notificationsAccordion = new Accordion();
-
     ScrollPane notificationsAccordionScrollPane;
-
-    // For showing recoveryCompleteAlert
-    private boolean isShowRecoveryCompleteScheduled = false;
+    private boolean isShowRecoveryCompleteScheduled = false; // For showing recoveryCompleteAlert
     private Timeline showRecoveryCompleteTimeline;
     ArrayList<DeRecStatusNotification> recoveryCompleteNotifications = new ArrayList<>();
     final String recoverySecretName = "RecoverySecret";
-
     Logger logger = LoggerFactory.getLogger(this.getClass().getName());
 
     @FXML
@@ -114,8 +100,6 @@ public class SharerTabController {
         State.getInstance()
                 .observableSharerTabSecretsUpdateCounter
                 .addListener((observable, oldValue, newValue) -> secretsListUpdated());
-        //        State.getInstance().versionsForSelectedSecret.addListener((ListChangeListener<DeRecVersion>) v ->
-        // updateVersionsAccordion());
         State.getInstance()
                 .observableSharerTabVersionsUpdateCounter
                 .addListener((observable, oldValue, newValue) -> updateVersionsAccordion());
@@ -124,33 +108,8 @@ public class SharerTabController {
 
         secretsDropdown.valueProperty().addListener((observable, oldValue, newValue) -> {
             secretsDropdownChanged(newValue);
-            //            System.out.println("Listerner called with newValue: " + newValue);
-            //            if (newValue != null) {
-            //                DeRecSecret secret =
-            //                        (DeRecSecret) State.getInstance().getSharer().getSecrets().stream()
-            //                                .filter(s -> newValue.equals(((DeRecSecret) s).getDescription()))
-            //                                .findFirst()
-            //                                .orElse(null);
-            //                if (secret != null) {
-            //                    State.getInstance().getUserSelections().setSecret(secret);
-            //                    updateVersionsAccordion();
-            //                    pairWithHelperButton.setDisable(false);
-            //
-            //                    createANewVersionButton.setDisable(secret.isRecovering() ? true: false);
-            //                    addSecretButton.setDisable(secret.isRecovering() ? true : false);
-            //                    System.out.println("Selecting secret " + secret.getDescription() + " isRecovering: " +
-            // secret.isRecovering());
-            //                    State.getInstance().getUserSelections().setRecovering(secret.isRecovering());
-            //                }
-            //            }
         });
 
-        //        State.getInstance().helperStatusesForSelectedSecret.addListener((ListChangeListener<? super
-        // DeRecHelperStatus>) change -> {
-        //            System.out.println("Updating helpers in UI");
-        //            updateHelpersInUI();
-        //        });
-        //        updateHelpersInUI();
         State.getInstance().observableSharerTabHelpersUpdateCounter.addListener((obs, oldVal, newVal) -> {
             System.out.println("-------------------- ************************************************** Updating "
                     + "helper in UI OldVal: " + oldVal + ", newVal: " + newVal);
@@ -176,11 +135,6 @@ public class SharerTabController {
     }
 
     void initLibForSharer(String name, String uri) {
-        //        Platform.runLater(() -> { });
-
-        // Create a helper in the library
-        //        DeRecSharer sharer = new Sharer(name, uri);
-        //        ServiceLoader<SharerFactory> loader = ServiceLoader.load(SharerFactory.class);
         ServiceLoader<SharerFactory> loader =
                 ServiceLoader.load(SharerFactory.class, getClass().getClassLoader());
 
@@ -225,7 +179,6 @@ public class SharerTabController {
                         .equals(derecNotification.getSecret().getSecretId())) {
                     System.out.println("Recovery complete: setting secret.isRecovering to false");
                     State.getInstance().getUserSelections().setRecovering(false);
-                    //                    State.getInstance().getUserSelections().getSecret().setRecovering(false);
                 }
             }
             State.getInstance().sharerNotifications.add(notification);
@@ -247,48 +200,6 @@ public class SharerTabController {
 
         System.out.println(str);
     }
-    //
-    //    public void old_updateHelpersInUI() {
-    //        helpersAccordion.getPanes().clear();
-    //
-    //
-    //        for (State.DisplayEntry entry : State.getInstance().sharerTabHelpersContents) {
-    //            TitledPane pane = new TitledPane();
-    //            DeRecHelperStatus helperStatus = (DeRecHelperStatus) entry.associatedObj;
-    ////            pane.getStyleClass().add(helperStatus.getStatus() == DeRecPairingStatus.PairingStatus.PAIRED ?
-    // "green-header" : "red-header");
-    //            if (helperStatus.getStatus() == DeRecPairingStatus.PairingStatus.PAIRED) {
-    //                pane.getStyleClass().add("green-header");
-    //            } else if (helperStatus.getStatus() == DeRecPairingStatus.PairingStatus.REFUSED) {
-    //                pane.getStyleClass().add("yellow-header");
-    //            } else {
-    //                pane.getStyleClass().add("red-header");
-    //            }
-    //
-    //            pane.setText(entry.title);
-    //            try {
-    //                FXMLLoader loader = new FXMLLoader(getClass().getResource("card-box.fxml"));
-    //                VBox cardContentBox = loader.load();
-    //                CardBoxController cardController = loader.getController();
-    //                cardController.setLabelText(entry.contents);
-    //                cardController.setImage("images/trashcan-icon.png");
-    //                cardController.getCardButton().setUserData(helperStatus);
-    //                cardController.setCardButtonAction(event -> {
-    //                    Button sourceButton = (Button) event.getSource();
-    //                    DeRecHelperStatus toBeDeleted = (DeRecHelperStatus) sourceButton.getUserData();
-    //                    System.out.println("Should unpair helper " + toBeDeleted.getId().getName());
-    //                    ArrayList<DeRecIdentity> idList = new ArrayList<>();
-    //                    idList.add(toBeDeleted.getId());
-    //                    State.getInstance().getUserSelections().getSecret().removeHelpersAsync(idList);
-    //                });
-    //                pane.setContent(cardContentBox);
-    //                helpersAccordion.getPanes().add(pane);
-    //            } catch (Exception ex) {
-    //                System.out.println("Exception in Card");
-    //                ex.printStackTrace();
-    //            }
-    //        }
-    //    }
 
     public void updateHelpersInUI() {
         Platform.runLater(() -> {
@@ -302,13 +213,10 @@ public class SharerTabController {
             }
 
             for (int i = 0; i < State.getInstance().sharerTabHelpersContents.size(); i++) {
-                //            TitledPane pane = new TitledPane();
                 TitledPane titledPane = helpersAccordion.getPanes().get(i);
                 DeRecHelperStatus helperStatus = (DeRecHelperStatus)
                         State.getInstance().sharerTabHelpersContents.get(i).associatedObj;
 
-                //            pane.getStyleClass().add(helperStatus.getStatus() ==
-                // DeRecPairingStatus.PairingStatus.PAIRED ? "green-header" : "red-header");
                 if (helperStatus.getStatus() == DeRecPairingStatus.PairingStatus.PAIRED) {
                     titledPane.getStyleClass().removeAll("yellow-header", "red-header");
                     titledPane.getStyleClass().add("green-header");
@@ -340,7 +248,6 @@ public class SharerTabController {
                         State.getInstance().getUserSelections().getSecret().removeHelpersAsync(idList);
                     });
                     titledPane.setContent(cardContentBox);
-                    //                helpersAccordion.getPanes().add(titledPane);
 
                     // Refresh the helpers screen, if the user is on the Helpers sub-tab
                     if (State.getInstance().getUserSelections().getSharerSelectedTab()
@@ -361,7 +268,7 @@ public class SharerTabController {
     public void updateNotificationsInUI() {
         notificationsAccordionScrollPane = new ScrollPane();
         notificationsAccordion.getPanes().clear();
-        HBox.setHgrow(notificationsAccordion, Priority.ALWAYS); // Allow accordion to expand horizontally
+        HBox.setHgrow(notificationsAccordion, Priority.ALWAYS);
 
         notificationsAccordion.getPanes().clear();
         for (DeRecStatusNotification notification : State.getInstance().sharerNotifications) {
@@ -404,7 +311,7 @@ public class SharerTabController {
                 ex.printStackTrace();
             }
         }
-        notificationsAccordionScrollPane.setFitToWidth(true); // Ensure accordion fits the width of the scroll pane
+        notificationsAccordionScrollPane.setFitToWidth(true);
     }
 
     private void secretsListUpdated() {
@@ -457,18 +364,12 @@ public class SharerTabController {
             Dialog<SecretDataInput> dialog = new Dialog<>();
             if (isEdit) {
                 dialog.setTitle("Edit Secret");
-                //                controller.getNormalModeLabel().setVisible(false);
-                //                controller.getRecoveryModeToggleSwitch().setVisible(false);
-                //                controller.getRecoveryModeLabel().setVisible(false);
                 controller.getSecretNameTextField().setVisible(false);
                 controller.getSecretNameLabel().setVisible(true);
                 controller.getSecretNameLabel().setText(description);
                 controller.getSecretDataField().setText(data);
             } else {
                 dialog.setTitle("Add Secret");
-                //                controller.getNormalModeLabel().setVisible(true);
-                //                controller.getRecoveryModeToggleSwitch().setVisible(true);
-                //                controller.getRecoveryModeLabel().setVisible(true);
                 controller.getSecretNameTextField().setVisible(true);
                 controller.getSecretNameLabel().setVisible(false);
             }
@@ -476,7 +377,7 @@ public class SharerTabController {
             dialogPane.setContent(dialogContent);
             dialogPane.getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
             dialogPane.setPrefWidth(MainApp.primaryStage.getWidth() * 0.8);
-            // Define how the dialog result is processed
+
             dialog.setResultConverter(dialogButton -> {
                 if (dialogButton == ButtonType.OK) {
                     String name = controller.getSecretNameLabel().textProperty().get();
@@ -498,7 +399,6 @@ public class SharerTabController {
             dialog.setDialogPane(dialogPane);
             dialog.initOwner(MainApp.primaryStage);
 
-            // Show the dialog and wait for the user to close it
             Optional<SecretDataInput> result = dialog.showAndWait();
             result.ifPresent(secretDataInput -> {
                 // Handle the secret data entered by the user
@@ -512,7 +412,6 @@ public class SharerTabController {
                                 .textProperty()
                                 .get()
                                 .getBytes(StandardCharsets.UTF_8));
-                        //                        System.out.println("Now, versions are: " + secret.debugStr());
                     } else {
                         DeRecSecret secret = (DeRecSecret) State.getInstance()
                                 .getSharer()
@@ -521,7 +420,6 @@ public class SharerTabController {
                         secretsDropdown.setValue(secretDataInput.name);
                         secretsDropdownChanged(secretDataInput.name);
                         System.out.println("After adding secret to lib");
-                        //                        System.out.println("Now, versions are: " + secret.debugStr());
 
                         if (secretsDropdown.getValue() == null) {
                             System.out.println(
@@ -539,10 +437,6 @@ public class SharerTabController {
                     ex.printStackTrace();
                 }
             });
-
-            // If you need to do something after the dialog is closed, handle it here
-            // For example, updating UI or processing input data
-
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -568,19 +462,6 @@ public class SharerTabController {
         createANewVersionButton.setVisible(true);
         pairWithHelperButton.setVisible(false);
         if (State.getInstance().getUserSelections().getSecret() == null) {
-            //            StackPane noSecretPane = new StackPane();
-            //            StackPane.setAlignment(noSecretPane, Pos.CENTER);
-            //            Region fillerAbove = new Region();
-            //            Region fillerBelow = new Region();
-            //            VBox.setVgrow(fillerAbove, Priority.ALWAYS);
-            //            VBox.setVgrow(fillerBelow, Priority.ALWAYS);
-            //
-            //            Label noSecretLabel = new Label("You have not created a secret.\n\nPlease create a secret to
-            // start.");
-            //            noSecretLabel.setFont(new Font(20));
-            //            noSecretPane.getChildren().add(noSecretLabel);
-            //
-            //            middleArea.getChildren().addAll(fillerAbove, noSecretPane, fillerBelow);
             showInitialMessage(middleArea, "You have not created a secret.\n\nPlease create a secret to start.");
         } else {
             middleArea.getChildren().addAll(versionsAccordion);
@@ -693,49 +574,8 @@ public class SharerTabController {
         return result.orElse(null);
     }
 
-    //    @FXML
-    //    private void createANewVersionButtonClicked() {
-    //        System.out.println("createANewVersionButtonClicked");
-    //    }
-
-    //    public void old_updateVersionsAccordion() {
-    //        versionsAccordion.getPanes().clear();
-    //        DeRecSecret secret = State.getInstance().getUserSelections().getSecret();
-    //        Collection<DeRecVersion> versions = (Collection<DeRecVersion>) secret.getVersions().values();
-    //        for (DeRecVersion version : versions) {
-    //            TitledPane pane = new TitledPane();
-    //            pane.getStyleClass().add(version.isProtected() ? "green-header" : "red-header");
-    //            pane.setText("Version: " + version.getVersionNumber() + "\n");
-    //
-    //            try {
-    //                FXMLLoader loader = new FXMLLoader(getClass().getResource("card-box.fxml"));
-    //                VBox contentBox = loader.load();
-    //                CardBoxController cardController = loader.getController();
-    //                cardController.setLabelText("Protected Data: " + new String(version.getProtectedValue(),
-    // StandardCharsets.UTF_8) +
-    //                        "\nProtected: " + (version.isProtected() ? "Yes" : "No")
-    //                );
-    //                cardController.setImage("images/trashcan-icon.png");
-    //                cardController.getCardButton().setUserData(version);
-    //                cardController.setCardButtonAction(event -> {
-    //                    Button sourceButton = (Button) event.getSource();
-    //                    DeRecVersion associatedVersion = (DeRecVersion) sourceButton.getUserData();
-    //                    System.out.println("Button clicked for version: " + associatedVersion.getVersionNumber());
-    //                    System.out.println("Delete is not implemented in the library API");
-    //                });
-    //
-    //                pane.setContent(contentBox);
-    //                versionsAccordion.getPanes().add(pane);
-    //            } catch (Exception ex) {
-    //                System.out.println("Exception in Card");
-    //                ex.printStackTrace();
-    //            }
-    //
-    //        }
-    //    }
     public void updateVersionsAccordion() {
         versionsAccordion.getPanes().clear();
-        //        DeRecSecret secret = State.getInstance().getUserSelections().getSecret();
         for (State.DisplayEntry entry : State.getInstance().sharerTabVersionsContents) {
             TitledPane pane = new TitledPane();
             DeRecVersion version = (DeRecVersion) entry.associatedObj;
@@ -796,7 +636,6 @@ public class SharerTabController {
 
         showRecoveryCompleteTimeline = new Timeline(new KeyFrame(Duration.seconds(3), event -> {
             Platform.runLater(() -> {
-                // Your code to run after 3 seconds
                 System.out.println("Executed after 3 seconds");
                 System.out.println(recoveryCompleteNotifications);
                 StringBuilder recoveredSecretsVersionsListString = new StringBuilder();
@@ -840,26 +679,6 @@ public class SharerTabController {
                                     secretsDropdownChanged(secretToSelect.get().getDescription());
                                 }
                             }
-
-                            //                            Optional<? extends DeRecSecret> secretToSelect =
-                            //
-                            // State.getInstance().getSharer().getSecrets().stream().filter(s ->
-                            // !s.getDescription().equals(recoverySecretName)).findFirst();
-                            //                            if (recoverySecret.isPresent() && secretToSelect.isPresent())
-                            // {
-                            //                                System.out.println("Selecting secret " +
-                            // secretToSelect.get().getDescription());
-                            //
-                            // secretsDropdown.setValue(secretToSelect.get().getDescription());
-                            //
-                            // secretsDropdownChanged(secretToSelect.get().getDescription());
-                            //
-                            //                                // Delete the recovery secret
-                            //                                System.out.println("Closing secret " +
-                            // recoverySecret.get().getDescription());
-                            //                                recoverySecret.get().close();
-                            //
-                            //                            }
                         }
                     });
                 }
