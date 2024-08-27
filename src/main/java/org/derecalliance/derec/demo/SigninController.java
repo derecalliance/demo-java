@@ -20,16 +20,11 @@ package org.derecalliance.derec.demo;
 import java.util.Map;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import org.derecalliance.derec.demo.state.State;
 
 public class SigninController {
-
-    @FXML
-    private ImageView imageView;
-
     @FXML
     private TextField nameField;
 
@@ -38,12 +33,6 @@ public class SigninController {
 
     @FXML
     private ComboBox<String> modeSelectionDropdown;
-
-    @FXML
-    private Button submitButton;
-
-    @FXML
-    private VBox deleteMe;
 
     private Runnable onSignedIn;
 
@@ -98,7 +87,6 @@ public class SigninController {
         String mode = modeSelectionDropdown.getValue();
         System.out.println("Mode: " + mode);
         if ("Recovery Mode".equals(mode)) {
-            // Make the color red
             System.out.println("Setting color of the sign in screen to red");
             signInScreenMain.getStyleClass().remove("signinscreen");
             signInScreenMain.getStyleClass().add("signinscreen-recovery");

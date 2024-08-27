@@ -69,21 +69,12 @@ public class MainApp extends Application {
                 System.err.println("Exception in Mainapp\n");
                 ex.printStackTrace();
             }
-
-            //            FXMLLoader loader = new FXMLLoader();
-            //            loader.setLocation(getClass().getResource("/org/derecalliance/derec/demo/MainView.fxml"));
-            //            Parent root = loader.load();
-            //
-            //            Scene scene = new Scene(root, State.getInstance().appWidth,
-            //                    State.getInstance().appHeight);
-            //            primaryStage.setScene(scene);
-
         });
 
         primaryStage.show();
     }
 
     public static void main(String[] args) {
-        launch(args); // Launch the JavaFX application
+        launch(args);
     }
 }
